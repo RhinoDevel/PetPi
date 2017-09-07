@@ -1,6 +1,7 @@
 # RhinoDevel, Marcel Timm, 2017.09.07
 
 import RPi.GPIO as GPIO
+import time
 
 pin_mode = GPIO.BCM # GPIO.BOARD
 pin_0 = 4 # BCM
@@ -18,8 +19,24 @@ def set_output(pin_nr, val):
     GPIO.output(pin_nr, val)
 
 def main():
+    b = 137
+    val = GPIO.LOW
+
     setup()
-    set_output(pin_0, GPIO.HIGH)
+
+    print('Initialising..')
+    set_output(pin_0, GPIO.LOW)
+    time.sleep(2.5) # MAGIC
+
+    print('Transfering..')
+
+    for i in range(0,8):
+        if (b>>i)&1 == 1:
+            val = GPIO.HIGH
+        else:
+            val = GPIO.LOW
+        set_output(pin_0, val)
+        time.sleep(1)
 
     raw_input('Press ENTER to exit.')
 
