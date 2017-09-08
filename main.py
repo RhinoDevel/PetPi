@@ -36,36 +36,23 @@ def get_input(pin_nr):
     return val
 
 def main():
-    b = 137
+    b = int(raw_input('Enter byte: '))
     val = GPIO.LOW
 
     setup()
         
-    #time.sleep(10)
-
     get_input(pin_1)
-    
-    GPIO.wait_for_edge(pin_1, GPIO.BOTH)
-    time.sleep(1)
-    get_input(pin_1)
-
-    return
-
-    print('Initialising..')
-    set_output(pin_0, GPIO.LOW)
-    time.sleep(2.5) # MAGIC
-
-    print('Transfering..')
 
     for i in range(0,8):
+        GPIO.wait_for_edge(pin_1, GPIO.BOTH)
         if (b>>i)&1 == 1:
             val = GPIO.HIGH
         else:
             val = GPIO.LOW
         set_output(pin_0, val)
-        time.sleep(1)
+        time.sleep(0.2)
 
-    raw_input('Press ENTER to exit.')
+    time.sleep(2)
 
     print('Cleaning up..')
     GPIO.cleanup()
