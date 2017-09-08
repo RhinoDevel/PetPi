@@ -52,7 +52,7 @@ def main():
         set_output(pin_0, val)
         time.sleep(0.2)
 
-    time.sleep(2)
+    time.sleep(1)
 
     print('Cleaning up..')
     GPIO.cleanup()
