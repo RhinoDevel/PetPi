@@ -43,16 +43,20 @@ def main():
         
     get_input(pin_1)
 
+    print('Waiting for start signal..')
+    GPIO.wait_for_edge(pin_1, GPIO.BOTH)
+
+    print('Starting transfer..')
     for i in range(0,8):
-        GPIO.wait_for_edge(pin_1, GPIO.BOTH)
         if (b>>i)&1 == 1:
             val = GPIO.HIGH
         else:
             val = GPIO.LOW
         set_output(pin_0, val)
-        time.sleep(0.2)
+        time.sleep(0.2) # To avoid detecting false edge.
+        GPIO.wait_for_edge(pin_1, GPIO.BOTH)
 
-    time.sleep(1)
+    print('Transfer done.')
 
     print('Cleaning up..')
     GPIO.cleanup()
