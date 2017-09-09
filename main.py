@@ -17,6 +17,8 @@ pin_mode = GPIO.BCM # GPIO.BOARD
 pin_0 = 4 # BCM
 pin_1 = 17 # BCM
 
+edge_wait_seconds = 0.2 # Check by sending a zero.
+
 def setup_pins():
     GPIO.setup(pin_0, GPIO.OUT)
     GPIO.setup(pin_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -53,7 +55,7 @@ def main():
         else:
             val = GPIO.LOW
         set_output(pin_0, val)
-        time.sleep(0.2) # To avoid detecting false edge.
+        time.sleep(edge_wait_seconds) # To avoid detecting false edge.
         GPIO.wait_for_edge(pin_1, GPIO.BOTH)
 
     print('Transfer done.')
