@@ -40,6 +40,7 @@ def get_input(pin_nr):
 def main():
     b = int(raw_input('Enter byte: '))
     val = GPIO.LOW
+    t0 = None
 
     setup()
         
@@ -47,6 +48,8 @@ def main():
 
     print('Waiting for start signal..')
     GPIO.wait_for_edge(pin_1, GPIO.BOTH)
+
+    t0 = time.time()
 
     print('Starting transfer..')
     for i in range(0,8):
@@ -59,6 +62,8 @@ def main():
         GPIO.wait_for_edge(pin_1, GPIO.BOTH)
 
     print('Transfer done.')
+
+    print('Elapsed time: '+str(time.time()-t0))
 
     print('Cleaning up..')
     GPIO.cleanup()
