@@ -4,7 +4,7 @@
 
 # Tested with:
 #
-# - Commodore/CBM 3001 Series Computer 3032, PET 2001-32N C with Basic 2.0
+# - Commodore/CBM 3001 Series Computer 3032, PET 2001-32N C with Basic 1.0 / ROM v2
 
 # - PET's user port pins interpreted as outputs have LOW level, if PET is powered off.
 # - They are "set" to HIGH level (interpreted as outputs) during PET booting up. 
@@ -53,25 +53,25 @@ def send_byte(b):
         GPIO.wait_for_edge(pin_1, GPIO.BOTH)
 
 def main():
-    start_addr = 826 # ROM v3 tape #2 buffer.
-    payload = [
-            169, # Immediate LDA.
-            83, # Heart symbol (yes, it is romantic).
-            141, # Absolute STA.
-            0, # Lower byte of 32768 (0x8000 - video RAM start).
-            128, # Higher byte of 32768.
-            96 # RTS.
-        ]
+    #start_addr = 826 # ROM v2 and v3 tape #2 buffer.
+    #payload = [
+    #        169, # Immediate LDA.
+    #        83, # Heart symbol (yes, it is romantic).
+    #        141, # Absolute STA.
+    #        0, # Lower byte of 32768 (0x8000 - video RAM start).
+    #        128, # Higher byte of 32768.
+    #        96 # RTS.
+    #    ]
     #
-    #i = -1
-    #file_path = raw_input('Please enter PRG file path: ')
-    #print('"'+file_path+'"')
-    #payload = list(open(file_path, 'rb').read())
-    #for i in range(len(payload)):
-    #    payload[i] = ord(payload[i])
-    #start_addr = payload[0]+256*payload[1]
-    #del payload[0]
-    #del payload[1]
+    i = -1
+    file_path = raw_input('Please enter PRG file path: ')
+    print('"'+file_path+'"')
+    payload = list(open(file_path, 'rb').read())
+    for i in range(len(payload)):
+        payload[i] = ord(payload[i])
+    start_addr = payload[0]+256*payload[1]
+    del payload[0]
+    del payload[0]
 
     b = -1
     l = -1
