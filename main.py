@@ -37,9 +37,32 @@ def get_input(pin_nr):
     print('Input at pin '+str(pin_nr)+' is '+str(val)+'.')
     return val
 
-def main():
-    b = int(raw_input('Enter byte: '))
+def send_byte(b):
+    i = 0
     val = GPIO.LOW
+
+    for i in range(0,8):
+        if (b>>i)&1 == 1:
+            val = GPIO.HIGH
+        else:
+            val = GPIO.LOW
+        set_output(pin_0, val)
+        time.sleep(edge_wait_seconds) # To avoid detecting false edge.
+        GPIO.wait_for_edge(pin_1, GPIO.BOTH)
+
+def main():
+    start_addr = 826 # ROM v3 tape #2 buffer.
+    payload = [
+            169, # Immediate LDA.
+            83, # Heart symbol (yes, it is romantic).
+            141, # Absolute STA.
+            0, # Lower byte of 32768 (0x8000 - video RAM start).
+            128, # Higher byte of 32768.
+            96 # RTS.
+        ]
+    l = -1
+    h = -1
+    b = -1
     t0 = None
 
     setup()
@@ -52,15 +75,16 @@ def main():
     t0 = time.time()
 
     print('Starting transfer..')
-    for i in range(0,8):
-        if (b>>i)&1 == 1:
-            val = GPIO.HIGH
-        else:
-            val = GPIO.LOW
-        set_output(pin_0, val)
-        time.sleep(edge_wait_seconds) # To avoid detecting false edge.
-        GPIO.wait_for_edge(pin_1, GPIO.BOTH)
-
+    h = start_addr//256 # ("Python-style") integer division.
+    l = start_addr-256*h
+    send_byte(l)
+    send_byte(h)
+    h = len(payload)//256
+    l = len(payload)-256*h
+    send_byte(l)
+    send_byte(h)
+    for b in payload:
+        send_byte(b)
     print('Transfer done.')
 
     print('Elapsed time: '+str(time.time()-t0))
