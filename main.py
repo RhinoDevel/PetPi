@@ -1,5 +1,7 @@
 # RhinoDevel, Marcel Timm, 2017.09.07
 
+# - This is written in Python 2.7.
+
 # Tested with:
 #
 # - Commodore/CBM 3001 Series Computer 3032, PET 2001-32N C with Basic 2.0
@@ -60,9 +62,20 @@ def main():
             128, # Higher byte of 32768.
             96 # RTS.
         ]
+    #
+    #i = -1
+    #file_path = raw_input('Please enter PRG file path: ')
+    #print('"'+file_path+'"')
+    #payload = list(open(file_path, 'rb').read())
+    #for i in range(len(payload)):
+    #    payload[i] = ord(payload[i])
+    #start_addr = payload[0]+256*payload[1]
+    #del payload[0]
+    #del payload[1]
+
+    b = -1
     l = -1
     h = -1
-    b = -1
     t0 = None
 
     setup()
