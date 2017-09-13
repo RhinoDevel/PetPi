@@ -27,6 +27,10 @@ de       = 1           ;1/60secs.bit read delay
 ; *** main ***
 
          cld           ;probably not needed
+         
+         lda #0
+         sta o
+
 
          jsr clrscr
 
@@ -205,7 +209,7 @@ prbloop  lsr a
 
 ; variables
 
-o        byte 0 ;output val.(hard-coded)
+o        byte 0 ;output val.
 buf      byte 0 ;byte buffer ;todo: use zero page.
 lel      byte 0 ;count of payload bytes
 leh      byte 0 ;
