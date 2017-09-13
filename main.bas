@@ -1,7 +1,7 @@
 2000 rem *** "constants" ***
 2010 di=59459:rem data direction reg.
 2020 io=59471:rem i/o port
-2030 de=10:rem 1/60secs.bit read delay
+2030 de=1:rem 1/60secs.bit read delay
 2500 rem *** variables ***
 2510 o=0:rem output val.(hard-coded)
 2520 by=0:rem current byte read
@@ -38,6 +38,8 @@
 5200 gosub 7200:rem read a byte
 5210 poke ca,by
 5220 next ca
+5222 print"setting output to high.."
+5224 poke io,(peek(io)or2)
 5230 print"done."
 6990 end
 7000 rem *** toggle output ***
