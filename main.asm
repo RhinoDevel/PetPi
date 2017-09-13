@@ -21,7 +21,7 @@ char_a   = $41
 time     = 514          ;low byte of time
 di       = 59459          ;data direction reg.
 io       = 59471          ;i/o port
-
+adptr    = 6           ;15 ;unused terminal & src. width
 de       = 1           ;1/60secs.bit read delay
 
 ; *** main ***
@@ -51,15 +51,15 @@ de       = 1           ;1/60secs.bit read delay
          jsr togout
 
          jsr readbyte
-         sta adl
+         sta adptr
          jsr readbyte
-         sta adh
+         sta adptr+1
          ldy #>starta
          lda #<starta
          jsr strout
-         lda adh
+         lda adptr+1
          jsr printby
-         lda adl
+         lda adptr
          jsr printby
          jsr crlf
 
@@ -79,7 +79,38 @@ de       = 1           ;1/60secs.bit read delay
          ldy #>readpl
          lda #<readpl
          jsr strout
-                       ;todo: read payload, etc.
+         jsr crlf
+nextpl   lda adptr+1
+         jsr printby
+         lda adptr
+         jsr printby
+         lda leh
+         jsr printby
+         lda lel
+         jsr printby
+         jsr crlf
+         jsr readbyte
+         ldy #0
+         sta (adptr),y
+         inc adptr
+         bne decle
+         inc adptr+1
+decle    dec lel
+         lda lel
+         cmp #$ff
+         bne nextpl
+         dec leh
+         lda leh
+         cmp #$ff
+         bne nextpl
+
+         ldy #>setouth
+         lda #<setouth
+         jsr strout
+         jsr crlf
+         lda #0
+         sta o
+         jsr togout
 
          rts
 
@@ -119,9 +150,9 @@ readloop jsr waitde
          lda io
          and #1
          beq readnext  ;bit read is zero
-         stx bi        ;bit read is one, add to byte (buffer)
+         stx buf       ;bit read is one, add to byte (buffer)
          tya           ;get current byte buffer content
-         ora bi        ;"add" current bit read
+         ora buf       ;"add" current bit read
          tay           ;save into byte buffer
 readnext txa           ;get next 2^exp
          asl
@@ -160,23 +191,21 @@ prbloop  lsr a
 ; variables
 
 o        byte 0 ;output val.(hard-coded)
-bi       byte 0 ;byte representation of current bit read ;todo: use zero page.
-adl      byte 0 ;where to store bytes
-adh      byte 0 ;
+buf      byte 0 ;byte buffer ;todo: use zero page.
 lel      byte 0 ;count of payload bytes
 leh      byte 0 ;
 
 ; data
 
-setouth  text "setting out val. to high.."
+setouth  text "out to high.."
 delim1   byte 0
-enableo  text "enabling output.."
+enableo  text "out on.."
 delim2   byte 0
-setoutl  text "setting out val. to low.."
+setoutl  text "out to low.."
 delim3   byte 0
-starta   text "start address: "
+starta   text "addr.: "
 delim4   byte 0
-bycount  text "byte count: "
+bycount  text "bytes: "
 delim5   byte 0
-readpl   text "reading payload.."
+readpl   text "reading.."
 delim6   byte 0
