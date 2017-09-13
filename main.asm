@@ -80,15 +80,29 @@ de       = 1           ;1/60secs.bit read delay
          lda #<readpl
          jsr strout
          jsr crlf
-nextpl   lda adptr+1
+         
+         lda $e0;$c4
+         sta deb0
+         lda $e1;$c5
+         sta deb1
+         lda $e2;$c6
+         sta deb2
+nextpl   lda deb0
+         sta $e0;$c4
+         lda deb1
+         sta $e1;$c5
+         lda deb2
+         sta $e2;$c6
+         lda adptr+1
          jsr printby
          lda adptr
          jsr printby
+         lda #" "
+         jsr wrt
          lda leh
          jsr printby
          lda lel
          jsr printby
-         jsr crlf
          jsr readbyte
          ldy #0
          sta (adptr),y
@@ -103,6 +117,7 @@ decle    dec lel
          lda leh
          cmp #$ff
          bne nextpl
+         jsr crlf
 
          ldy #>setouth
          lda #<setouth
@@ -194,18 +209,21 @@ o        byte 0 ;output val.(hard-coded)
 buf      byte 0 ;byte buffer ;todo: use zero page.
 lel      byte 0 ;count of payload bytes
 leh      byte 0 ;
+deb0     byte 0
+deb1     byte 0
+deb2     byte 0
 
 ; data
 
-setouth  text "out to high.."
+setouth  text "o.>h"
 delim1   byte 0
-enableo  text "out on.."
+enableo  text "o.on"
 delim2   byte 0
-setoutl  text "out to low.."
+setoutl  text "o.>l"
 delim3   byte 0
-starta   text "addr.: "
+starta   text "a."
 delim4   byte 0
-bycount  text "bytes: "
+bycount  text "b."
 delim5   byte 0
-readpl   text "reading.."
+readpl   text "read"
 delim6   byte 0
