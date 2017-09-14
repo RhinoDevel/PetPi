@@ -9,16 +9,18 @@
 
 ; system sub routines
 
-clrscr   = $e236          ;$e246
+;clrscr   = $e236          ;$e246
 crlf     = $c9d2          ;$c9e2
 wrt      = $ffd2
-strout   = $ca27          ;$ca1c
+;strout   = $ca27          ;$ca1c
+get      = $ffe4
 
 ; "constants"
 
-char_0   = $30
-char_a   = $41
-char_spc = $20
+chr_stop = 3
+chr_0    = $30
+chr_a    = $41
+chr_spc  = $20
 
 cursor   = $e0          ;$c4
 time     = 514          ;143          ;low byte of time
@@ -36,104 +38,91 @@ de       = 1           ;1/60secs.bit read delay
 
          lda #0
          sta run
-begin    cld           ;probably not needed
 
-         lda #0
+begin    lda #0
          sta o
 
-         jsr clrscr
+                       ;cld
 
-         ldy #>setouth
-         lda #<setouth
-         jsr strout
-         jsr crlf
          jsr togout
 
-         ldy #>enableo
-         lda #<enableo
-         jsr strout
-         jsr crlf
          lda di
          ora #2
          sta di
 
-         ldy #>setoutl
-         lda #<setoutl
-         jsr strout
-         jsr crlf
          jsr togout
 
-         jsr  readbyte
-         sta  adptr
-         jsr  readbyte
-         sta  adptr+1
-         ldy  #>starta
-         lda  #<starta
-         jsr  strout
-         lda  adptr+1
-         jsr  printby
-         lda  adptr
-         jsr  printby
-         jsr  crlf
+         jsr readbyte
+         sta adptr
+         jsr readbyte
+         sta adptr+1
+         lda adptr+1
+         jsr printby
+         lda adptr
+         jsr printby
+         jsr crlf
 
-         jsr  readbyte
-         sta  lel
-         jsr  readbyte
-         sta  leh
-         ldy  #>bycount
-         lda  #<bycount
-         jsr  strout
-         lda  leh
-         jsr  printby
-         lda  lel
-         jsr  printby
-         jsr  crlf
+         jsr readbyte
+         sta lel
+         jsr readbyte
+         sta leh
+         lda leh
+         jsr printby
+         lda lel
+         jsr printby
+         jsr crlf
 
-         lda  cursor
-         sta  deb0
-         lda  cursor+1
-         sta  deb1
-         lda  cursor+2
-         sta  deb2
-nextpl   lda  deb0
-         sta  cursor
-         lda  deb1
-         sta  cursor+1
-         lda  deb2
-         sta  cursor+2
-         lda  adptr+1
-         jsr  printby
-         lda  adptr
-         jsr  printby
-         lda  #char_spc
-         jsr  wrt
-         lda  leh
-         jsr  printby
-         lda  lel
-         jsr  printby
-         jsr  readbyte
-         ldy  #0
-         sta  (adptr),y
-         inc  adptr
-         bne  decle
-         inc  adptr+1
-decle    dec  lel
-         lda  lel
-         cmp  #$ff
-         bne  nextpl
-         dec  leh
-         lda  leh
-         cmp  #$ff
-         bne  nextpl
-         jsr  crlf
+keywait  jsr get
+         beq keywait
+         cmp #chr_stop
+         bne cursave
+         rts
 
-         ldy  #>setouth
-         lda  #<setouth
-         jsr  strout
-         jsr  crlf
-         lda  #0
-         sta  o
-         jsr  togout
+cursave  lda cursor
+         sta deb0
+         lda cursor+1
+         sta deb1
+         lda cursor+2
+         sta deb2
+nextpl   jsr get
+         beq contpl
+         cmp #chr_stop
+         beq end
+contpl   lda deb0
+         sta cursor
+         lda deb1
+         sta cursor+1
+         lda deb2
+         sta cursor+2
+         lda adptr+1
+         jsr printby
+         lda adptr
+         jsr printby
+         lda #chr_spc
+         jsr wrt
+         lda leh
+         jsr printby
+         lda lel
+         jsr printby
+         jsr readbyte
+         ldy #0
+         sta (adptr),y
+         inc adptr
+         bne decle
+         inc adptr+1
+decle    dec lel
+         lda lel
+         cmp #$ff
+         bne nextpl
+         dec leh
+         lda leh
+         cmp #$ff
+         bne nextpl
+         jsr crlf
+
+         lda #0
+         sta o
+         jsr togout
 
          lda run
          beq end
@@ -143,14 +132,14 @@ end      rts
 
 ; *** "toggle" output based on variable o ***
 
-togout   lda o ;"toggle" depending on o
+togout   lda o         ;"toggle" depending on o
          beq toghigh
-         lda io ;toggle output to low        
+         lda io        ;toggle output to low
          and #253
          jmp togdo
 toghigh  lda io        ;toggle output to high
          ora #2
-togdo    sta io ;does not work in vice (v3.1)!
+togdo    sta io        ;does not work in vice (v3.1)!
          lda #1
          sec
          sbc o
@@ -195,10 +184,10 @@ printhd  and #$0f      ;ignore left 4 bits
          cmp #$0a
          bcc printd
          clc           ;more or equal $0a - a to f
-         adc #char_a-$0a
+         adc #chr_a-$0a
          bcc print
 printd   clc           ;less than $0a - 0 to 9
-         adc #char_0
+         adc #chr_0
 print    jsr wrt
          rts
 
@@ -226,14 +215,3 @@ deb1     byte 0
 deb2     byte 0
 
 ; data
-
-setouth  text "h"
-delim1   byte 0
-enableo  text "o"
-delim2   byte 0
-setoutl  text "l"
-delim3   byte 0
-starta   text "s"
-delim4   byte 0
-bycount  text "c"
-delim5   byte 0
