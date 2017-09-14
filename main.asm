@@ -18,19 +18,22 @@ strout   = $ca27          ;$ca1c
 
 char_0   = $30
 char_a   = $41
-time     = 514          ;low byte of time
+char_spc = $20
+
+cursor   = $e0          ;$c4
+time     = 514          ;143          ;low byte of time
 di       = 59459          ;data direction reg.
 io       = 59471          ;i/o port
+
 adptr    = 6           ;15 ;unused terminal & src. width
 de       = 1           ;1/60secs.bit read delay
 
 ; *** main ***
 
          cld           ;probably not needed
-         
+
          lda #0
          sta o
-
 
          jsr clrscr
 
@@ -54,100 +57,94 @@ de       = 1           ;1/60secs.bit read delay
          jsr crlf
          jsr togout
 
-         jsr readbyte
-         sta adptr
-         jsr readbyte
-         sta adptr+1
-         ldy #>starta
-         lda #<starta
-         jsr strout
-         lda adptr+1
-         jsr printby
-         lda adptr
-         jsr printby
-         jsr crlf
+         jsr  readbyte
+         sta  adptr
+         jsr  readbyte
+         sta  adptr+1
+         ldy  #>starta
+         lda  #<starta
+         jsr  strout
+         lda  adptr+1
+         jsr  printby
+         lda  adptr
+         jsr  printby
+         jsr  crlf
 
-         jsr readbyte
-         sta lel
-         jsr readbyte
-         sta leh
-         ldy #>bycount
-         lda #<bycount
-         jsr strout
-         lda leh
-         jsr printby
-         lda lel
-         jsr printby
-         jsr crlf
+         jsr  readbyte
+         sta  lel
+         jsr  readbyte
+         sta  leh
+         ldy  #>bycount
+         lda  #<bycount
+         jsr  strout
+         lda  leh
+         jsr  printby
+         lda  lel
+         jsr  printby
+         jsr  crlf
 
-         ldy #>readpl
-         lda #<readpl
-         jsr strout
-         jsr crlf
-         
-         lda $e0;$c4
-         sta deb0
-         lda $e1;$c5
-         sta deb1
-         lda $e2;$c6
-         sta deb2
-nextpl   lda deb0
-         sta $e0;$c4
-         lda deb1
-         sta $e1;$c5
-         lda deb2
-         sta $e2;$c6
-         lda adptr+1
-         jsr printby
-         lda adptr
-         jsr printby
-         lda #" "
-         jsr wrt
-         lda leh
-         jsr printby
-         lda lel
-         jsr printby
-         jsr readbyte
-         ldy #0
-         sta (adptr),y
-         inc adptr
-         bne decle
-         inc adptr+1
-decle    dec lel
-         lda lel
-         cmp #$ff
-         bne nextpl
-         dec leh
-         lda leh
-         cmp #$ff
-         bne nextpl
-         jsr crlf
+         lda  cursor
+         sta  deb0
+         lda  cursor+1
+         sta  deb1
+         lda  cursor+2
+         sta  deb2
+nextpl   lda  deb0
+         sta  cursor
+         lda  deb1
+         sta  cursor+1
+         lda  deb2
+         sta  cursor+2
+         lda  adptr+1
+         jsr  printby
+         lda  adptr
+         jsr  printby
+         lda  #char_spc
+         jsr  wrt
+         lda  leh
+         jsr  printby
+         lda  lel
+         jsr  printby
+         jsr  readbyte
+         ldy  #0
+         sta  (adptr),y
+         inc  adptr
+         bne  decle
+         inc  adptr+1
+decle    dec  lel
+         lda  lel
+         cmp  #$ff
+         bne  nextpl
+         dec  leh
+         lda  leh
+         cmp  #$ff
+         bne  nextpl
+         jsr  crlf
 
-         ldy #>setouth
-         lda #<setouth
-         jsr strout
-         jsr crlf
-         lda #0
-         sta o
-         jsr togout
+         ldy  #>setouth
+         lda  #<setouth
+         jsr  strout
+         jsr  crlf
+         lda  #0
+         sta  o
+         jsr  togout
 
          rts
 
-; *** toggle output ***
+; *** "toggle" output based on variable o ***
 
-togout   lda #1
+togout   lda o ;"toggle" depending on o
+         beq toghigh
+         lda io ;toggle output to low        
+         and #253
+         jmp togdo
+toghigh  lda io        ;toggle output to high
+         ora #2
+togdo    sta io ;does not work in vice (v3.1)!
+         lda #1
          sec
          sbc o
          sta o
-         cmp 0
-         beq togoutl
-         lda io        ;toggle output to high
-         ora #2
-         sta io
-         rts
-togoutl  lda io        ;toggle output to low
-         and #253
-         sta io
          rts
 
 ; *** wait 1/60 secs.in constant de ***
@@ -229,5 +226,3 @@ starta   text "a."
 delim4   byte 0
 bycount  text "b."
 delim5   byte 0
-readpl   text "read"
-delim6   byte 0
