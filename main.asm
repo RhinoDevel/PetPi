@@ -67,12 +67,12 @@ begin    cld
          jsr wrt
 
          jsr readbyte
-         sta lel
+         sta le
          jsr readbyte
-         sta leh
-         lda leh
+         sta le+1
+         lda le+1
          jsr printby
-         lda lel
+         lda le
          jsr printby
          jsr crlf
 
@@ -107,9 +107,9 @@ contpl   lda crsrbuf
          jsr printby
          lda #chr_spc
          jsr wrt
-         lda leh
+         lda le+1
          jsr printby
-         lda lel
+         lda le
          jsr printby
          jsr readbyte
          ldy #0
@@ -117,12 +117,12 @@ contpl   lda crsrbuf
          inc adptr
          bne decle
          inc adptr+1
-decle    dec lel
-         lda lel
+decle    dec le
+         lda le
          cmp #$ff
          bne nextpl
-         dec leh
-         lda leh
+         dec le+1
+         lda le+1
          cmp #$ff
          bne nextpl
          jsr crlf
@@ -220,8 +220,7 @@ prbloop  lsr a
 autorun  byte 0 ;automatically run after load yes/no
 o        byte 0 ;output val.
 buf      byte 0 ;byte buffer ;todo: use zero page
-lel      byte 0 ;count of payload bytes
-leh      byte 0 ;
+le       byte 0, 0 ;count of payload bytes
 crsrbuf  byte 0, 0, 0  
 
 ; data
