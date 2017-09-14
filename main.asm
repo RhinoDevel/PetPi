@@ -7,40 +7,50 @@
 
 *=634 ;tape buf. #1 and #2 used (192+192 bytes)
 
+; -------------------
 ; system sub routines
+; -------------------
 
-clrscr   = $e236          ;$e246
-;strout   = $ca27          ;$ca1c
-crlf     = $c9d2          ;$c9e2
+clrscr   = $e236       ;$e246
+crlf     = $c9d2       ;$c9e2
 wrt      = $ffd2
 get      = $ffe4
+;strout   = $ca27      ;$ca1c
 
+; -----------
 ; "constants"
+; -----------
 
 chr_stop = 3
 chr_0    = $30
 chr_a    = $41
 chr_spc  = $20
 
-cursor   = $e0          ;$c4
-time     = 514          ;143          ;low byte of time
-di       = 59459          ;data direction reg.
-io       = 59471          ;i/o port
+cursor   = $e0         ;$c4
+time     = 514         ;143 ;low byte of time
+di       = 59459       ;data direction reg.
+io       = 59471       ;i/o port
 
 adptr    = 6           ;15 ;unused terminal & src. width
 de       = 1           ;1/60secs.bit read delay
 
-; *** main ***
+; ---------
+; functions
+; ---------
 
-         jsr clrscr
-         lda #chr_a
+; ************
+; *** main ***
+; ************
+
+         jsr clrscr    ;entry point for autorun prg after load
+         lda #chr_a    ;signal autorun-enabled to user
          jsr wrt
          jsr crlf
          lda #1
          sta autorun
          jmp begin
 
-         jsr clrscr
+         jsr clrscr    ;engry point for prg load, only
          lda #0
          sta autorun
 
@@ -76,7 +86,7 @@ begin    cld
          jsr printby
          jsr crlf
 
-         lda adptr ;return,if dest.addr.=$ffff
+         lda adptr     ;return,if dest.addr.=$ffff
          cmp #$ff
          bne keywait
          lda adptr+1
@@ -87,7 +97,7 @@ keywait  jsr get
          beq keywait
          cmp #chr_stop
          bne cursave
-break    jsr out2high
+break    jsr out2high  ;return with output set to high
          rts
 
 cursave  lda cursor
@@ -140,7 +150,9 @@ decle    dec le
 
 end      rts
 
+; *******************************************
 ; *** "toggle" output based on variable o ***
+; *******************************************
 
 togout   lda o         ;"toggle" depending on o
          beq toghigh
@@ -156,14 +168,18 @@ togdo    sta io        ;does not work in vice (v3.1)!
          sta o
          rts
 
+; **************************
 ; *** set output to high ***
+; **************************
 
 out2high lda #0
          sta o
          jsr togout
          rts
 
+; *************************************
 ; *** wait 1/60 secs.in constant de ***
+; *************************************
 
 waitde   sei           ;no update during read
          lda time      ;read low byte of time
@@ -174,7 +190,9 @@ delay    cmp time      ;loop, untile resume
          bne delay     ;time is reached
          rts
 
+; ***********************************
 ;*** read a byte into accumulator ***
+; ***********************************
 
 readbyte ldy #0        ;byte buffer during read
          ldx #1        ;to hold 2^exp
@@ -195,7 +213,9 @@ readnext txa           ;get next 2^exp
          tya           ;get byte read into accumulator
          rts
 
+; *********************************************************
 ; *** print "hexadigit" (hex.0-f) stored in accumulator ***
+; *********************************************************
 
 printhd  and #$0f      ;ignore left 4 bits
          cmp #$0a
@@ -208,7 +228,9 @@ printd   clc           ;less than $0a - 0 to 9
 print    jsr wrt
          rts
 
+; ******************************************************
 ; *** print byte in accumulator as hexadecimal value ***
+; ******************************************************
 
 printby  ldx #4
          tay
@@ -220,12 +242,18 @@ prbloop  lsr a
          jsr printhd
          rts
 
+; ---------
 ; variables
+; ---------
 
 autorun  byte 0 ;automatically run after load yes/no
 o        byte 0 ;output val.
 buf      byte 0 ;byte buffer ;todo: use zero page
 le       byte 0, 0 ;count of payload bytes
-crsrbuf  byte 0, 0, 0  
+crsrbuf  byte 0, 0, 0
 
+; ----
 ; data
+; ----
+
+; (e.g. add strings, here)
