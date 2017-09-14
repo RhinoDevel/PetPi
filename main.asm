@@ -84,22 +84,22 @@ keywait  jsr get
          rts
 
 cursave  lda cursor
-         sta deb0
+         sta crsrbuf
          lda cursor+1
-         sta deb1
+         sta crsrbuf+1
          lda cursor+2
-         sta deb2
+         sta crsrbuf+2
 nextpl   jsr get
          beq contpl
          cmp #chr_stop
          bne contpl
          jsr out2high
          rts
-contpl   lda deb0
+contpl   lda crsrbuf
          sta cursor
-         lda deb1
+         lda crsrbuf+1
          sta cursor+1
-         lda deb2
+         lda crsrbuf+2
          sta cursor+2
          lda adptr+1
          jsr printby
@@ -222,8 +222,6 @@ o        byte 0 ;output val.
 buf      byte 0 ;byte buffer ;todo: use zero page
 lel      byte 0 ;count of payload bytes
 leh      byte 0 ;
-deb0     byte 0
-deb1     byte 0
-deb2     byte 0
+crsrbuf  byte 0, 0, 0  
 
 ; data
