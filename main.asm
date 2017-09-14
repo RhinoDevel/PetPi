@@ -76,11 +76,18 @@ begin    cld
          jsr printby
          jsr crlf
 
+         lda adptr ;return,if dest.addr.=$ffff
+         cmp #$ff
+         bne keywait
+         lda adptr+1
+         cmp #$ff
+         beq break
+
 keywait  jsr get
          beq keywait
          cmp #chr_stop
          bne cursave
-         jsr out2high
+break    jsr out2high
          rts
 
 cursave  lda cursor
@@ -92,9 +99,7 @@ cursave  lda cursor
 nextpl   jsr get
          beq contpl
          cmp #chr_stop
-         bne contpl
-         jsr out2high
-         rts
+         beq break
 contpl   lda crsrbuf
          sta cursor
          lda crsrbuf+1
