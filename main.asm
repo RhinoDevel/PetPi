@@ -34,8 +34,8 @@ de       = 1           ;1/60secs.bit read delay
 
          jsr clrscr
          lda #chr_a
-         jsr wrt  
-         jsr crlf       
+         jsr wrt
+         jsr crlf
          lda #1
          sta run
          jmp begin
@@ -44,7 +44,7 @@ de       = 1           ;1/60secs.bit read delay
          lda #0
          sta run
 
-begin    cld ;probably not necessary
+begin    cld
 
          jsr out2high
 
@@ -62,7 +62,7 @@ begin    cld ;probably not necessary
          jsr printby
          lda adptr
          jsr printby
-         
+
          lda #chr_spc
          jsr wrt
 
