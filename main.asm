@@ -44,12 +44,9 @@ de       = 1           ;1/60secs.bit read delay
          lda #0
          sta run
 
-begin    lda #0
-         sta o
+begin    cld ;probably not necessary
 
-         cld ;probably not necessary
-
-         jsr togout
+         jsr out2high
 
          lda di
          ora #2
@@ -83,6 +80,7 @@ keywait  jsr get
          beq keywait
          cmp #chr_stop
          bne cursave
+         jsr out2high
          rts
 
 cursave  lda cursor
@@ -94,7 +92,9 @@ cursave  lda cursor
 nextpl   jsr get
          beq contpl
          cmp #chr_stop
-         beq end
+         bne contpl
+         jsr out2high
+         rts
 contpl   lda deb0
          sta cursor
          lda deb1
@@ -127,9 +127,7 @@ decle    dec lel
          bne nextpl
          jsr crlf
 
-         lda #0
-         sta o
-         jsr togout
+         jsr out2high
 
          lda run
          beq end
@@ -151,6 +149,13 @@ togdo    sta io        ;does not work in vice (v3.1)!
          sec
          sbc o
          sta o
+         rts
+
+; *** set output to high ***
+
+out2high lda #0
+         sta o
+         jsr togout
          rts
 
 ; *** wait 1/60 secs.in constant de ***
