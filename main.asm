@@ -37,12 +37,12 @@ de       = 1           ;1/60secs.bit read delay
          jsr wrt
          jsr crlf
          lda #1
-         sta run
+         sta autorun
          jmp begin
 
          jsr clrscr
          lda #0
-         sta run
+         sta autorun
 
 begin    cld
 
@@ -129,7 +129,7 @@ decle    dec lel
 
          jsr out2high
 
-         lda run
+         lda autorun
          beq end
          jmp (adptr)
 
@@ -217,7 +217,7 @@ prbloop  lsr a
 
 ; variables
 
-run      byte 0 ;run after load yes/no
+autorun  byte 0 ;automatically run after load yes/no
 o        byte 0 ;output val.
 buf      byte 0 ;byte buffer ;todo: use zero page
 lel      byte 0 ;count of payload bytes
