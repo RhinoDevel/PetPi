@@ -30,7 +30,13 @@ de       = 1           ;1/60secs.bit read delay
 
 ; *** main ***
 
-         cld           ;probably not needed
+         lda #1
+         sta run
+         jmp begin
+
+         lda #0
+         sta run
+begin    cld           ;probably not needed
 
          lda #0
          sta o
@@ -129,7 +135,11 @@ decle    dec  lel
          sta  o
          jsr  togout
 
-         rts
+         lda run
+         beq end
+         jmp (adptr)
+
+end      rts
 
 ; *** "toggle" output based on variable o ***
 
@@ -206,8 +216,9 @@ prbloop  lsr a
 
 ; variables
 
+run      byte 0 ;run after load yes/no
 o        byte 0 ;output val.
-buf      byte 0 ;byte buffer ;todo: use zero page.
+buf      byte 0 ;byte buffer ;todo: use zero page
 lel      byte 0 ;count of payload bytes
 leh      byte 0 ;
 deb0     byte 0
@@ -216,13 +227,13 @@ deb2     byte 0
 
 ; data
 
-setouth  text "o.>h"
+setouth  text "h"
 delim1   byte 0
-enableo  text "o.on"
+enableo  text "o"
 delim2   byte 0
-setoutl  text "o.>l"
+setoutl  text "l"
 delim3   byte 0
-starta   text "a."
+starta   text "s"
 delim4   byte 0
-bycount  text "b."
+bycount  text "c"
 delim5   byte 0
