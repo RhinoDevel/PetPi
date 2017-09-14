@@ -9,10 +9,10 @@
 
 ; system sub routines
 
-;clrscr   = $e236          ;$e246
+clrscr   = $e236          ;$e246
+;strout   = $ca27          ;$ca1c
 crlf     = $c9d2          ;$c9e2
 wrt      = $ffd2
-;strout   = $ca27          ;$ca1c
 get      = $ffe4
 
 ; "constants"
@@ -32,17 +32,22 @@ de       = 1           ;1/60secs.bit read delay
 
 ; *** main ***
 
+         jsr clrscr
+         lda #chr_a
+         jsr wrt  
+         jsr crlf       
          lda #1
          sta run
          jmp begin
 
+         jsr clrscr
          lda #0
          sta run
 
 begin    lda #0
          sta o
 
-                       ;cld
+         cld ;probably not necessary
 
          jsr togout
 
@@ -60,7 +65,9 @@ begin    lda #0
          jsr printby
          lda adptr
          jsr printby
-         jsr crlf
+         
+         lda #chr_spc
+         jsr wrt
 
          jsr readbyte
          sta lel
