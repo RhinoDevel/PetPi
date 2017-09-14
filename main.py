@@ -112,8 +112,9 @@ def main():
     l = payload_len-256*h
     send_byte(l)
     send_byte(h)
-    for b in payload:
-        send_byte(b)
+    for i in range(len(payload)):
+        print('Sending payload byte nr. '+str(i)+': '+str(payload[i])+'..')
+        send_byte(payload[i])
     print('Transfer done.')
 
     t_end = time.time()-t0
