@@ -5,17 +5,23 @@
 
 ; cbm pet
 
+; configure for basic 2.0 / rom v3.
+; can be reconfigured for basic 1.0 / rom v2 by
+; replacing values with following values in comments
+; (if there are no commented-out values following,
+; these addresses are equal).
+
 *=634 ;tape buf. #1 and #2 used (192+192 bytes)
 
 ; -------------------
 ; system sub routines
 ; -------------------
 
-clrscr   = $e236       ;$e246
-crlf     = $c9d2       ;$c9e2
+clrscr   = $e229       ;$e236
+crlf     = $c9e2       ;$c9d2
 wrt      = $ffd2
 get      = $ffe4
-;strout   = $ca27      ;$ca1c
+;strout   = $ca1c      ;$ca27
 
 ; -----------
 ; "constants"
@@ -26,12 +32,12 @@ chr_0    = $30
 chr_a    = $41
 chr_spc  = $20
 
-cursor   = $e0         ;$c4
-time     = 514         ;143 ;low byte of time
+cursor   = $c0         ;$e4
+time     = 143         ;514 ;low byte of time
 di       = 59459       ;data direction reg.
 io       = 59471       ;i/o port
 
-adptr    = 6           ;15 ;unused terminal & src. width
+adptr    = 15          ;6 ;unused terminal & src. width
 de       = 1           ;1/60secs.bit read delay
 
 ; ---------
@@ -196,7 +202,7 @@ delay    cmp time      ;loop, untile resume
 
 readbyte ldy #0        ;byte buffer during read
          ldx #1        ;to hold 2^exp
-readloop jsr waitde
+readloop jsr waitde    ;todo: decrease wait delay
          lda io
          and #1
          beq readnext  ;bit read is zero
