@@ -21,7 +21,6 @@ clrscr   = $e229       ;$e236 ;<- basic 1.0 / rom v2 value
 crlf     = $c9e2       ;$c9d2
 wrt      = $ffd2
 get      = $ffe4
-clr      = $0577       ;$c770 ;basic clr
 run      = $c785       ;$c775 ;basic run
 ;strout   = $ca1c       ;$ca27
 
@@ -30,6 +29,8 @@ run      = $c785       ;$c775 ;basic run
 ; ---------------
 
 varstptr = 42;124 ;pointer to start of basic variables
+varenptr = 44;126 ;pointer to end of basic variables
+arrenptr = 46;128 ;pointer to end of basic arrays
 
 ; -----------
 ; "constants"
@@ -160,16 +161,19 @@ decle    dec le
          cmp #>defbasic
          bne runasm
          
-         ;lda loadadr+1 ;set basic start of variables behind loaded prg
+         lda adptr+1 ;set basic variables & arrays pointers to behind loaded prg
+         ldy adptr
          sta varstptr+1
-         lda loadadr
-         sta varstptr
-         jsr clr ;let basic clr set all other stuff
-         jmp run;
+         sty varstptr
+         sta varenptr+1
+         sty varenptr
+         sta arrenptr+1
+         sty arrenptr
+
+         lda #0 ;necessary for run to work
+         jmp run
          
 runasm   jmp (loadadr)
-
-end      rts
 
 ; *******************************************
 ; *** "toggle" output based on variable o ***
