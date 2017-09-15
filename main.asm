@@ -17,11 +17,19 @@
 ; system sub routines
 ; -------------------
 
-clrscr   = $e229       ;$e236 <- basic 1.0 / rom v2 value
+clrscr   = $e229       ;$e236 ;<- basic 1.0 / rom v2 value
 crlf     = $c9e2       ;$c9d2
 wrt      = $ffd2
 get      = $ffe4
-;strout   = $ca1c      ;$ca27
+clr      = $0577       ;$c770 ;basic clr
+run      = $c785       ;$c775 ;basic run
+;strout   = $ca1c       ;$ca27
+
+; ---------------
+; system pointers
+; ---------------
+
+varstptr = 42;124 ;pointer to start of basic variables
 
 ; -----------
 ; "constants"
@@ -36,6 +44,7 @@ cursor   = $c4         ;$e0
 time     = 143         ;514 ;low byte of time
 di       = 59459       ;data direction reg.
 io       = 59471       ;i/o port
+defbasic = $401        ;default start addr.of basic prg
 
 adptr    = 15          ;6 ;unused terminal & src. width
 de       = 1           ;1/60secs.bit read delay
@@ -48,19 +57,9 @@ de       = 1           ;1/60secs.bit read delay
 ; *** main ***
 ; ************
 
-         jsr clrscr    ;<- entry point for autorun prg after load
-         lda #chr_a    ;signal autorun-enabled to user
-         jsr wrt
-         jsr crlf
-         lda #1
-         sta autorun
-         jmp begin
+         cld
 
-         jsr clrscr    ;<- engry point for prg load, only
-         lda #0
-         sta autorun
-
-begin    cld
+         jsr clrscr
 
          jsr out2high
 
@@ -72,9 +71,12 @@ begin    cld
 
          jsr readbyte
          sta adptr
+         sta loadadr
          jsr readbyte
          sta adptr+1
-         lda adptr+1
+         sta loadadr
+
+         ;lda adptr+1
          jsr printby
          lda adptr
          jsr printby
@@ -86,7 +88,8 @@ begin    cld
          sta le
          jsr readbyte
          sta le+1
-         lda le+1
+
+         ;lda le+1
          jsr printby
          lda le
          jsr printby
@@ -150,9 +153,21 @@ decle    dec le
 
          jsr out2high
 
-         lda autorun
-         beq end
-         jmp (adptr)
+         lda loadadr    ;decide,if basic or asm prg loaded
+         cmp #<defbasic ;(decision based on start address, only..)
+         bne runasm
+         lda loadadr+1
+         cmp #>defbasic
+         bne runasm
+         
+         ;lda loadadr+1 ;set basic start of variables behind loaded prg
+         sta varstptr+1
+         lda loadadr
+         sta varstptr
+         jsr clr ;let basic clr set all other stuff
+         jmp run;
+         
+runasm   jmp (loadadr)
 
 end      rts
 
@@ -252,11 +267,11 @@ prbloop  lsr a
 ; variables
 ; ---------
 
-autorun  byte 0 ;automatically run after load yes/no
 o        byte 0 ;output val.
 buf      byte 0 ;byte buffer ;todo: use zero page
 le       byte 0, 0 ;count of payload bytes
 crsrbuf  byte 0, 0, 0
+loadadr  byte 0, 0 ;hold start address of loaded prg
 
 ; ----
 ; data
