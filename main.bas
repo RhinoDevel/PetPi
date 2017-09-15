@@ -56,7 +56,8 @@
 7200 rem *** read a byte into by ***
 7210 by=0
 7220 for c=0 to 7
-7230 p=de:gosub 7100:rem wait delay
+7225 rem implicit delay is enough:
+7230 rem p=de:gosub 7100:rem wait delay
 7240 bi=peek(io)and1
 7250 by=by+bi*(2^c)
 7260 gosub 7000:rem acknowledge
