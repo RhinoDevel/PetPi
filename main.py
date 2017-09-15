@@ -65,6 +65,8 @@ def send_byte(b):
            next_edge = GPIO.FALLING
 
 def main():
+    i = -1
+
     #start_addr = 826 # ROM v2 and v3 tape #2 buffer.
     #payload = [
     #        169, # Immediate LDA.
@@ -75,7 +77,6 @@ def main():
     #        96 # RTS.
     #    ]
     #
-    i = -1
     file_path = raw_input('Please enter PRG file path: ')
     print('"'+file_path+'"')
     payload = list(open(file_path, 'rb').read())
