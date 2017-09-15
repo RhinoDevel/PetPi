@@ -5,7 +5,7 @@
 
 ; cbm pet
 
-; configure for basic 2.0 / rom v3.
+; configured for basic 2.0 / rom v3.
 ; can be reconfigured for basic 1.0 / rom v2 by
 ; replacing values with following values in comments
 ; (if there are no commented-out values following,
@@ -17,7 +17,7 @@
 ; system sub routines
 ; -------------------
 
-clrscr   = $e229       ;$e236
+clrscr   = $e229       ;$e236 <- basic 1.0 / rom v2 value
 crlf     = $c9e2       ;$c9d2
 wrt      = $ffd2
 get      = $ffe4
@@ -32,7 +32,7 @@ chr_0    = $30
 chr_a    = $41
 chr_spc  = $20
 
-cursor   = $c0         ;$e4
+cursor   = $c4         ;$e0
 time     = 143         ;514 ;low byte of time
 di       = 59459       ;data direction reg.
 io       = 59471       ;i/o port
@@ -48,7 +48,7 @@ de       = 1           ;1/60secs.bit read delay
 ; *** main ***
 ; ************
 
-         jsr clrscr    ;entry point for autorun prg after load
+         jsr clrscr    ;<- entry point for autorun prg after load
          lda #chr_a    ;signal autorun-enabled to user
          jsr wrt
          jsr crlf
@@ -56,7 +56,7 @@ de       = 1           ;1/60secs.bit read delay
          sta autorun
          jmp begin
 
-         jsr clrscr    ;engry point for prg load, only
+         jsr clrscr    ;<- engry point for prg load, only
          lda #0
          sta autorun
 
