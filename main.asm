@@ -21,7 +21,7 @@ crlf     = $c9e2       ;$c9d2 <- basic 1.0 / rom v2 value
 wrt      = $ffd2
 get      = $ffe4
 
-run      = $c785       ;$c775 ;basic run
+;run      = $c785       ;$c775 ;basic run
 clrscr   = $e229       ;$e236
 ;new      = $c55b       ;$c551 ;basic new
 ;clr      = $c577       ;$c770 ;basic clr
@@ -35,7 +35,7 @@ varstptr = 42;124 ;pointer to start of basic variables
 ;varenptr = 44;126 ;pointer to end of basic variables
 ;arrenptr = 46;128 ;pointer to end of basic arrays
 
-;runl1ptr = 49172 ;pointer-1 to basic run cmd.
+runl1ptr = 49172 ;pointer-1 to basic run cmd.
 ;newl1ptr = 49220 ;pointer-1 to basic new cmd.
 ;clrl1ptr = 49208 ;pointer-1 to basic clr cmd.
 
@@ -62,18 +62,18 @@ de       = 1           ;1/60secs.bit read delay
 ; macros
 ; ------
 
-;; **********************************************
-;; *** call a basic command and exit to basic ***
-;; **********************************************
-;
-;defm  basiccmx
-;      lda /1+1
-;      pha
-;      lda /1
-;      pha
-;      lda #0
-;      rts
-;      endm
+; **********************************************
+; *** call a basic command and exit to basic ***
+; **********************************************
+
+defm  basiccmx
+      lda /1+1
+      pha
+      lda /1
+      pha
+      lda #0
+      rts
+      endm
 
 ;; *********************************
 ;; *** just call a basic command ***
@@ -217,10 +217,10 @@ decle    dec le
 
          ;jsr crlf
 
-         ;basiccmx runl1ptr ;returns to basic
+         basiccmx runl1ptr ;returns to basic
          ;
-         lda #0
-         jmp run
+         ;lda #0
+         ;jmp run
          
 runasm   jmp (loadadr)
 
