@@ -114,7 +114,7 @@ def main():
     send_byte(l)
     send_byte(h)
     for i in range(len(payload)):
-        print('Sending payload byte nr. '+str(i)+': '+str(payload[i])+'..')
+        print('Sending payload byte nr. '+str(i)+' of '+str(len(payload))+': '+str(payload[i])+'..')
         send_byte(payload[i])
     print('Transfer done.')
 
