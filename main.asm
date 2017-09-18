@@ -11,17 +11,20 @@
 ; (if there are no commented-out values following,
 ; these addresses are equal).
 
-*=634 ;tape buf. #1 and #2 used (192+192 bytes)
+*=634 ;tape buf. #1 and #2 used (192+192=384 bytes)
 
 ; -------------------
 ; system sub routines
 ; -------------------
 
-clrscr   = $e229       ;$e236 ;<- basic 1.0 / rom v2 value
-crlf     = $c9e2       ;$c9d2
+crlf     = $c9e2       ;$c9d2 <- basic 1.0 / rom v2 value
 wrt      = $ffd2
 get      = $ffe4
+
 run      = $c785       ;$c775 ;basic run
+clrscr   = $e229       ;$e236
+;new      = $c55b       ;$c551 ;basic new
+;clr      = $c577       ;$c770 ;basic clr
 ;strout   = $ca1c       ;$ca27
 
 ; ---------------
@@ -29,8 +32,12 @@ run      = $c785       ;$c775 ;basic run
 ; ---------------
 
 varstptr = 42;124 ;pointer to start of basic variables
-varenptr = 44;126 ;pointer to end of basic variables
-arrenptr = 46;128 ;pointer to end of basic arrays
+;varenptr = 44;126 ;pointer to end of basic variables
+;arrenptr = 46;128 ;pointer to end of basic arrays
+
+;runl1ptr = 49172 ;pointer-1 to basic run cmd.
+;newl1ptr = 49220 ;pointer-1 to basic new cmd.
+;clrl1ptr = 49208 ;pointer-1 to basic clr cmd.
 
 ; -----------
 ; "constants"
@@ -41,6 +48,7 @@ chr_0    = $30
 chr_a    = $41
 chr_spc  = $20
 
+tapbufin = $bb         ;$271 ;tape buffer #1 and #2 indices to next char (2 bytes)
 cursor   = $c4         ;$e0
 time     = 143         ;514 ;low byte of time
 di       = 59459       ;data direction reg.
@@ -49,6 +57,36 @@ defbasic = $401        ;default start addr.of basic prg
 
 adptr    = 15          ;6 ;unused terminal & src. width
 de       = 1           ;1/60secs.bit read delay
+
+; ------
+; macros
+; ------
+
+;; **********************************************
+;; *** call a basic command and exit to basic ***
+;; **********************************************
+;
+;defm  basiccmx
+;      lda /1+1
+;      pha
+;      lda /1
+;      pha
+;      lda #0
+;      rts
+;      endm
+
+;; *********************************
+;; *** just call a basic command ***
+;; *********************************
+;
+;defm basiccmd
+;      lda #0
+;      jsr /1
+;      lda rtsadr+1             ;restore return addr. on stack (removed by basic cmd.)
+;      pha
+;      lda rtsadr
+;      pha
+;      endm
 
 ; ---------
 ; functions
@@ -59,6 +97,16 @@ de       = 1           ;1/60secs.bit read delay
 ; ************
 
          cld
+
+         pla             ;save return address (basic cmds.remove this fr.stack)
+         sta rtsadr      ;$fc = low byte of address
+         pla
+         sta rtsadr+1    ;$c6 = high byte of address
+         pha
+         lda rtsadr
+         pha
+
+         ;basiccmd new    ;shouldn't be necessary.
 
          jsr clrscr
 
@@ -160,26 +208,27 @@ decle    dec le
          lda loadadr+1
          cmp #>defbasic
          bne runasm
-         
-         lda adptr+1 ;set basic variables & arrays pointers to behind loaded prg
-         ldy adptr
+        
+         lda adptr+1     ;set basic variables start pointer to behind loaded prg
          sta varstptr+1
-         sty varstptr
-         sta varenptr+1
-         sty varenptr
-         sta arrenptr+1
-         sty arrenptr
+         lda adptr
+         sta varstptr
+         ;basiccmd clr ;done by run called below
 
-         lda #0 ;necessary for run to work
+         ;jsr crlf
+
+         ;basiccmx runl1ptr ;returns to basic
+         ;
+         lda #0
          jmp run
          
 runasm   jmp (loadadr)
 
-; *******************************************
-; *** "toggle" output based on variable o ***
-; *******************************************
+; *****************************************
+; *** "toggle" output based on tapbufin ***
+; *****************************************
 
-togout   lda o         ;"toggle" depending on o
+togout   lda tapbufin  ;"toggle" depending on tapbufin
          beq toghigh
          lda io        ;toggle output to low
          and #253
@@ -189,8 +238,8 @@ toghigh  lda io        ;toggle output to high
 togdo    sta io        ;does not work in vice (v3.1)!
          lda #1
          sec
-         sbc o
-         sta o
+         sbc tapbufin
+         sta tapbufin
          rts
 
 ; **************************
@@ -198,7 +247,7 @@ togdo    sta io        ;does not work in vice (v3.1)!
 ; **************************
 
 out2high lda #0
-         sta o
+         sta tapbufin
          jsr togout
          rts
 
@@ -225,9 +274,9 @@ readloop jsr waitde    ;todo: decrease wait delay
          lda io
          and #1
          beq readnext  ;bit read is zero
-         stx buf       ;bit read is one, add to byte (buffer)
+         stx tapbufin+1       ;bit read is one, add to byte (buffer)
          tya           ;get current byte buffer content
-         ora buf       ;"add" current bit read
+         ora tapbufin+1       ;"add" current bit read
          tay           ;save into byte buffer
 readnext txa           ;get next 2^exp
          asl
@@ -267,15 +316,25 @@ prbloop  lsr a
          jsr printhd
          rts
 
+;; **********************************
+;; *** debug: print stack pointer ***
+;; **********************************
+;
+;printsp  tsx
+;         txa
+;         clc         ;ignore change caused by calling
+;         adc #2      ;this sub routine.
+;         jsr printby
+;         rts
+
 ; ---------
 ; variables
 ; ---------
 
-o        byte 0 ;output val.
-buf      byte 0 ;byte buffer ;todo: use zero page
 le       byte 0, 0 ;count of payload bytes
 crsrbuf  byte 0, 0, 0
 loadadr  byte 0, 0 ;hold start address of loaded prg
+rtsadr   byte 0, 0 ;hold return address found on stack at start of execution
 
 ; ----
 ; data
