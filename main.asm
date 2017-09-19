@@ -50,13 +50,14 @@ chr_spc  = $20
 
 tapbufin = $bb         ;$271 ;tape buffer #1 and #2 indices to next char (2 bytes)
 cursor   = $c4         ;$e0
-time     = 143         ;514 ;low byte of time
+;time     = 143         ;514 ;low byte of time
+counter  = $E849       ;read timer 2 counter high byte
 di       = 59459       ;data direction reg.
 io       = 59471       ;i/o port
 defbasic = $401        ;default start addr.of basic prg
 
 adptr    = 15          ;6 ;unused terminal & src. width
-de       = 1           ;1/60secs.bit read delay
+de       = 8;1         ;bit read delay (see function for details)
 
 ; ------
 ; macros
@@ -262,18 +263,28 @@ out2high lda #0
          jsr togout
          rts
 
-; *************************************
-; *** wait 1/60 secs.in constant de ***
-; *************************************
+;; *************************************
+;; *** wait 1/60 secs.in constant de ***
+;; *************************************
+;
+;waitde   sei           ;no update during read
+;         lda time      ;read low byte of time
+;         cli
+;         clc
+;         adc #de       ;calculate resume time
+;delay    cmp time      ;loop, untile resume
+;         bne delay     ;time is reached
+;         rts
 
-waitde   sei           ;no update during read
-         lda time      ;read low byte of time
-         cli
-         clc
-         adc #de       ;calculate resume time
-delay    cmp time      ;loop, untile resume
-         bne delay     ;time is reached
-         rts
+; *******************************************************
+; *** wait constant de multiplied by 256 microseconds ***
+; *******************************************************
+
+waitde    lda de
+          sta counter
+delay     cmp counter
+          bcs delay     ;branch, if de is equal or greater than counter
+          rts      
 
 ; ***********************************
 ;*** read a byte into accumulator ***
@@ -293,7 +304,7 @@ readnext txa           ;get next 2^exp
          asl
          tax
          jsr togout    ;acknowledge
-         cpx #0        ; last bit read?
+         cpx #0        ;last bit read?
          bne readloop
          tya           ;get byte read into accumulator
          rts
