@@ -280,7 +280,7 @@ out2high lda #0
 ; *** wait constant de multiplied by 256 microseconds ***
 ; *******************************************************
 
-waitde    lda de
+waitde    lda #de
           sta counter
 delay     cmp counter
           bcs delay     ;branch, if de is equal or greater than counter
