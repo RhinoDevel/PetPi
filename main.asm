@@ -57,7 +57,7 @@ io       = 59471       ;i/o port
 defbasic = $401        ;default start addr.of basic prg
 
 adptr    = 15          ;6 ;unused terminal & src. width
-de       = 8;1         ;bit read delay (see function for details)
+de       = 32;1         ;bit read delay (see function for details)
 
 ; ------
 ; macros
