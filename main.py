@@ -7,7 +7,7 @@
 # - Commodore/CBM 3001 Series Computer 3032, PET 2001-32N C with Basic 1.0 / ROM v2
 
 # - PET's user port pins interpreted as outputs have LOW level, if PET is powered off.
-# - They are "set" to HIGH level (interpreted as outputs) during PET booting up. 
+# - They are "set" to HIGH level (interpreted as outputs) during PET booting up.
 # - Initially, the I/O user port pins 0-7 are configured as inputs: PEEK(59459) => 0
 # - Such a pin can be configured as output via poking to 59459. E.g. for pin 1: POKE 59459,(PEEK(59459) OR 2) => LOW level (maybe not always!).
 # - Output level can be set by poking to 59471. E.g. for pin 1: POKE 59471,(PEEK(59471) OR 2) => HIGH level.
@@ -39,6 +39,10 @@ def get_input(pin_nr):
     #print('get_input : '+'Input at pin '+str(pin_nr)+' is '+str(val)+'.')
     return val
 
+def cleanup():
+    print('Cleaning up..')
+    GPIO.cleanup()
+
 def send_byte(b):
     i = 0
     val = GPIO.LOW
@@ -47,6 +51,7 @@ def send_byte(b):
     # Should be an assert (debugging):
     #
     if get_input(pin_1) is GPIO.HIGH:
+        cleanup()
         raise Exception('send_byte : Error: Input pin must be set to low!')
 
     for i in range(0,8):
@@ -94,9 +99,10 @@ def main():
     t_end = None
 
     setup()
-       
+
     if get_input(pin_1) is not GPIO.HIGH:
         print('Error: Input must be set to HIGH! Exiting..')
+        cleanup()
         return
 
     print('Waiting for start signal..')
@@ -123,8 +129,7 @@ def main():
     print('Elapsed seconds: '+str(t_end))
     print('Bytes per second: '+str((2+2+payload_len)/t_end))
 
-    print('Cleaning up..')
-    GPIO.cleanup()
+    cleanup()
 
     print('Done.')
 
