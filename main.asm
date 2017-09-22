@@ -186,6 +186,13 @@ contpl   lda crsrbuf   ;reset cursor position for progress update on screen
          jsr readbyte  ;read byte
          ldy #0        ;store byte at current address
          sta (adptr),y
+
+         lda #chr_spc
+         jsr wrt
+         ;ldy #0
+         lda (adptr),y ;print byte read
+         jsr printby
+
          inc adptr
          bne decle
          inc adptr+1
