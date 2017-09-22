@@ -51,13 +51,13 @@ chr_spc  = $20
 tapbufin = $bb         ;$271 ;tape buffer #1 and #2 indices to next char (2 bytes)
 cursor   = $c4         ;$e0
 ;time     = 143         ;514 ;low byte of time
-counter  = $E849       ;read timer 2 counter high byte
+counter  = $e849       ;read timer 2 counter high byte
 di       = 59459       ;data direction reg.
 io       = 59471       ;i/o port
 defbasic = $401        ;default start addr.of basic prg
 
 adptr    = 15          ;6 ;unused terminal & src. width
-de       = 32;1         ;bit read delay (see function for details)
+de       = 32;1        ;bit read delay (see function for details)
 
 ; ------
 ; macros
