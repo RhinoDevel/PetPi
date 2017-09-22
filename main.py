@@ -69,7 +69,7 @@ def send_byte(b):
         else:
            next_edge = GPIO.FALLING
 
-def main():
+def main_nocatch():
     i = -1
 
     #start_addr = 826 # ROM v2 and v3 tape #2 buffer.
@@ -113,11 +113,15 @@ def main():
     print('Starting transfer of 2+2+'+str(payload_len)+' bytes..')
     h = start_addr//256 # ("Python-style") integer division.
     l = start_addr-256*h
+    print('Sending start address low byte: '+str(l)+'..')
     send_byte(l)
+    print('Sending start address high byte: '+str(h)+'..')
     send_byte(h)
     h = payload_len//256
     l = payload_len-256*h
+    print('Sending payload length low byte: '+str(l)+'..')    
     send_byte(l)
+    print('Sending payload length high byte: '+str(h)+'..')    
     send_byte(h)
     for i in range(len(payload)):
         print('Sending payload byte at index '+str(i)+' of '+str(len(payload))+': '+str(payload[i])+'..')
@@ -132,5 +136,12 @@ def main():
     cleanup()
 
     print('Done.')
+
+def main():
+    try:
+        main_nocatch()
+    except KeyboardInterrupt:
+        print('Keyboard interrupt detected.')
+        cleanup()
 
 main()
