@@ -19,7 +19,7 @@ pin_mode = GPIO.BCM # GPIO.BOARD
 pin_0 = 4 # BCM
 pin_1 = 17 # BCM
 
-edge_wait_seconds = 0.001 # Use slightly higher delay on PET.
+#edge_wait_seconds = 0.001 # Use slightly higher delay on PET.
 
 def setup_pins():
     GPIO.setup(pin_0, GPIO.OUT)
@@ -61,7 +61,7 @@ def send_byte(b):
             val = GPIO.LOW
         set_output(pin_0, val)
 
-        time.sleep(edge_wait_seconds) # To avoid detecting false edge.
+        #time.sleep(edge_wait_seconds) # To avoid detecting false edge.
 
         GPIO.wait_for_edge(pin_1, next_edge)
         if next_edge is GPIO.FALLING:
