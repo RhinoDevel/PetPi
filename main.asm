@@ -17,12 +17,12 @@
 ; system sub routines
 ; -------------------
 
-crlf     = $c9e2       ;$c9d2 <- basic 1.0 / rom v2 value
+crlf     = $c9e2          ;$c9d2 <- basic 1.0 / rom v2 value
 wrt      = $ffd2
 get      = $ffe4
 
-run      = $c785       ;$c775 ;basic run
-clrscr   = $e229       ;$e236
+run      = $c785          ;$c775 ;basic run
+clrscr   = $e229          ;$e236
 ;new      = $c55b       ;$c551 ;basic new
 ;clr      = $c577       ;$c770 ;basic clr
 ;strout   = $ca1c       ;$ca27
@@ -31,7 +31,7 @@ clrscr   = $e229       ;$e236
 ; system pointers
 ; ---------------
 
-varstptr = 42;124 ;pointer to start of basic variables
+varstptr = 42          ;124 ;pointer to start of basic variables
 ;varenptr = 44;126 ;pointer to end of basic variables
 ;arrenptr = 46;128 ;pointer to end of basic arrays
 
@@ -48,16 +48,16 @@ chr_0    = $30
 chr_a    = $41
 chr_spc  = $20
 
-tapbufin = $bb         ;$271 ;tape buffer #1 and #2 indices to next char (2 bytes)
-cursor   = $c4         ;$e0
+tapbufin = $bb          ;$271 ;tape buffer #1 and #2 indices to next char (2 bytes)
+cursor   = $c4          ;$e0
 ;time     = 143         ;514 ;low byte of time
-counter  = $e849       ;read timer 2 counter high byte
-di       = 59459       ;data direction reg.
-io       = 59471       ;i/o port
-defbasic = $401        ;default start addr.of basic prg
+counter  = $e849          ;read timer 2 counter high byte
+di       = 59459          ;data direction reg.
+io       = 59471          ;i/o port
+defbasic = $401          ;default start addr.of basic prg
 
 adptr    = 15          ;6 ;unused terminal & src. width
-de       = 32;1        ;bit read delay (see function for details)
+de       = 32          ;1        ;bit read delay (see function for details)
 
 ; ------
 ; macros
@@ -83,7 +83,7 @@ de       = 32;1        ;bit read delay (see function for details)
 ;defm basiccmd
 ;      lda #0
 ;      jsr /1
-;      lda rtsadr+1             ;restore return addr. on stack (removed by basic cmd.)
+;      lda rtsadr+1      ;restore return addr. on stack (removed by basic cmd.)
 ;      pha
 ;      lda rtsadr
 ;      pha
@@ -99,34 +99,32 @@ de       = 32;1        ;bit read delay (see function for details)
 
          cld
 
-         pla             ;save return address (basic cmds.remove this fr.stack)
-         sta rtsadr      ;$fc = low byte of address
+         jsr clrscr
+
+         pla           ;save return address (basic cmds.remove this fr.stack)
+         sta rtsadr    ;$fc = low byte of address
          pla
-         sta rtsadr+1    ;$c6 = high byte of address
+         sta rtsadr+1  ;$c6 = high byte of address
          pha
          lda rtsadr
          pha
 
-         ;basiccmd new    ;shouldn't be necessary.
+         jsr out2high  ;make sure that line 2 will be high, when set as output
 
-         jsr clrscr
-
-         jsr out2high
-
-         lda di
+         lda di        ;setup i/o line 2 as output
          ora #2
          sta di
 
-         jsr togout
+         jsr togout    ;set line 2 to low
 
-         jsr readbyte
-         sta adptr
-         sta loadadr
+         jsr readbyte  ;read start address
+         sta adptr     ;store for transfer
+         sta loadadr   ;store for later autostart
          jsr readbyte
          sta adptr+1
          sta loadadr+1
 
-         ;lda adptr+1
+                       ;lda adptr+1    ;print start address
          jsr printby
          lda adptr
          jsr printby
@@ -134,12 +132,12 @@ de       = 32;1        ;bit read delay (see function for details)
          lda #chr_spc
          jsr wrt
 
-         jsr readbyte
+         jsr readbyte  ;read payload byte count
          sta le
          jsr readbyte
          sta le+1
 
-         ;lda le+1
+                       ;lda le+1       ;print payload byte count
          jsr printby
          lda le
          jsr printby
@@ -152,41 +150,41 @@ de       = 32;1        ;bit read delay (see function for details)
          cmp #$ff
          beq break
 
-keywait  jsr get
+keywait  jsr get       ;wait for user key press
          beq keywait
          cmp #chr_stop
-         bne cursave
+         bne cursave   ;exit,if run/stop was pressed
 break    jsr out2high  ;return with output set to high
          rts
 
-cursave  lda cursor
+cursave  lda cursor    ;remember cursor position for progress updates
          sta crsrbuf
          lda cursor+1
          sta crsrbuf+1
          lda cursor+2
          sta crsrbuf+2
-nextpl   jsr get
+nextpl   jsr get       ;let user be able to break execution with run/stop key
          beq contpl
          cmp #chr_stop
          beq break
-contpl   lda crsrbuf
+contpl   lda crsrbuf   ;reset cursor position for progress update on screen
          sta cursor
          lda crsrbuf+1
          sta cursor+1
          lda crsrbuf+2
          sta cursor+2
-         lda adptr+1
+         lda adptr+1   ;print current byte address
          jsr printby
          lda adptr
          jsr printby
          lda #chr_spc
          jsr wrt
-         lda le+1
+         lda le+1      ;print current count of bytes left
          jsr printby
          lda le
          jsr printby
-         jsr readbyte
-         ldy #0
+         jsr readbyte  ;read byte
+         ldy #0        ;store byte at current address
          sta (adptr),y
          inc adptr
          bne decle
@@ -203,18 +201,18 @@ decle    dec le
 
          jsr out2high
 
-         lda loadadr    ;decide,if basic or asm prg loaded
-         cmp #<defbasic ;(decision based on start address, only..)
+         lda loadadr   ;decide,if basic or asm prg loaded
+         cmp #<defbasic;(decision based on start address, only..)
          bne runasm
          lda loadadr+1
          cmp #>defbasic
          bne runasm
-  
-         lda adptr+1     ;set basic variables start pointer to behind loaded prg
+
+         lda adptr+1   ;set basic variables start pointer to behind loaded prg
          sta varstptr+1
          lda adptr
          sta varstptr
-         ;basiccmd clr ;done by run called below
+                       ;basiccmd clr ;done by run called below
 
          jsr crlf
 
@@ -229,11 +227,11 @@ decle    dec le
 ;         lda #<defbasic
 ;         jsr printby
 
-         ;basiccmx runl1ptr ;returns to basic
-         ;
+                       ;basiccmx runl1ptr ;returns to basic
+                       ;
          lda #0
          jmp run
-         
+
 runasm   jmp (loadadr)
 
 ; *****************************************
@@ -280,11 +278,11 @@ out2high lda #0
 ; *** wait constant de multiplied by 256 microseconds ***
 ; *******************************************************
 
-waitde    lda #de
-          sta counter
-delay     cmp counter
-          bcs delay     ;branch, if de is equal or greater than counter
-          rts      
+waitde   lda #de
+         sta counter
+delay    cmp counter
+         bcs delay     ;branch, if de is equal or greater than counter
+         rts
 
 ; ***********************************
 ;*** read a byte into accumulator ***
@@ -296,9 +294,9 @@ readloop jsr waitde    ;todo: decrease wait delay
          lda io
          and #1
          beq readnext  ;bit read is zero
-         stx tapbufin+1       ;bit read is one, add to byte (buffer)
+         stx tapbufin+1;bit read is one, add to byte (buffer)
          tya           ;get current byte buffer content
-         ora tapbufin+1       ;"add" current bit read
+         ora tapbufin+1;"add" current bit read
          tay           ;save into byte buffer
 readnext txa           ;get next 2^exp
          asl
