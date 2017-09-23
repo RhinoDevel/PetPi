@@ -18,12 +18,17 @@ import time
 pin_mode = GPIO.BCM # GPIO.BOARD
 pin_0 = 4 # BCM
 pin_1 = 17 # BCM
+pin_2 = 27 # BCM
+
+wrt_rdy = GPIO.LOW # Also used as initial value [see setup_pins()].
 
 #edge_wait_seconds = 0.001 # Use slightly higher delay on PET.
 
 def setup_pins():
-    GPIO.setup(pin_0, GPIO.OUT)
-    GPIO.setup(pin_1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(
+        pin_0, GPIO.OUT, initial=GPIO.LOW) # DATA to PET (init. val. shouldn't matter).
+    GPIO.setup(pin_1, GPIO.IN, pull_up_down=GPIO.PUD_UP) # READ ACK from PET.
+    GPIO.setup(pin_2, GPIO.OUT, initial=wrt_rdy) # WRITE READY to PET.
 
 def setup():
     GPIO.setwarnings(False)
@@ -44,9 +49,12 @@ def cleanup():
     GPIO.cleanup()
 
 def send_byte(b):
+    global wrt_rdy
+
     i = 0
     val = GPIO.LOW
     next_edge = GPIO.RISING
+    next_wrt_rdy = GPIO.HIGH # wrt_rdy must always be low, here!
 
     # Should be an assert (debugging):
     #
@@ -54,20 +62,30 @@ def send_byte(b):
         cleanup()
         raise Exception('send_byte : Error: Input pin must be set to low!')
 
+    # Should be an assert (debugging):
+    #
+    if wrt_rdy is GPIO.HIGH:
+        cleanup()
+        raise Exception('send_byte : Error: WRITE READY state must be set to low!')
+
     for i in range(0,8):
         if (b>>i)&1 == 1:
             val = GPIO.HIGH
         else:
             val = GPIO.LOW
-        set_output(pin_0, val)
+        set_output(pin_0, val) # DATA to PET.
+
+        set_output(pin_2, next_wrt_rdy) # WRITE READY to PET.
 
         #time.sleep(edge_wait_seconds) # To avoid detecting false edge.
 
-        GPIO.wait_for_edge(pin_1, next_edge)
+        GPIO.wait_for_edge(pin_1, next_edge) # Waiting for READ ACK from PET.
         if next_edge is GPIO.FALLING:
            next_edge = GPIO.RISING
         else:
            next_edge = GPIO.FALLING
+
+        wrt_rdy, next_wrt_rdy = next_wrt_rdy, wrt_rdy # Swap
 
 def main_nocatch():
     i = -1
