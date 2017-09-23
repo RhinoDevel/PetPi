@@ -16,7 +16,7 @@
 2580 le=0:rem count of payload bytes
 2590 ca=-1:rem current store address
 2600 la=-1:rem last store address
-2610 wr=1:rem next write ready val.
+2610 wr=0:rem next write ready val.
 5000 rem *** main ***
 5005 print"setting out val. to high.."
 5010 gosub 7000:rem see val.of o
@@ -57,7 +57,6 @@
 7210 by=0
 7220 for c=0 to 7
 7225 rem wait for write ready signal:
-7230 rem p=de:gosub 7100:rem wait delay
 7235 if (peek(io)and2)/2<>wr then 7235
 7238 wr=1-wr
 7240 bi=peek(io)and1

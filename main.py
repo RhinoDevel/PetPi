@@ -20,7 +20,7 @@ pin_0 = 4 # BCM
 pin_1 = 17 # BCM
 pin_2 = 27 # BCM
 
-wrt_rdy = GPIO.LOW # Also used as initial value [see setup_pins()].
+wrt_rdy = GPIO.HIGH # Also used as initial value [see setup_pins()].
 
 #edge_wait_seconds = 0.001 # Use slightly higher delay on PET.
 
@@ -54,7 +54,7 @@ def send_byte(b):
     i = 0
     val = GPIO.LOW
     next_edge = GPIO.RISING
-    next_wrt_rdy = GPIO.HIGH # wrt_rdy must always be low, here!
+    next_wrt_rdy = GPIO.LOW # wrt_rdy must always be high, here!
 
     # Should be an assert (debugging):
     #
@@ -64,7 +64,7 @@ def send_byte(b):
 
     # Should be an assert (debugging):
     #
-    if wrt_rdy is GPIO.HIGH:
+    if wrt_rdy is GPIO.LOW:
         cleanup()
         raise Exception('send_byte : Error: WRITE READY state must be set to low!')
 
