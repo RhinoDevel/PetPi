@@ -1,7 +1,10 @@
+1000 rem *** hard-coded ***
+1010 rem pin 0 = data from pi
+1020 rem pin 1 = read ack to pi
+1030 rem pin 2 = write ready from pi
 2000 rem *** "constants" ***
 2010 di=59459:rem data direction reg.
 2020 io=59471:rem i/o port
-2030 de=1:rem 1/60secs.bit read delay
 2500 rem *** variables ***
 2510 o=0:rem output val.(hard-coded)
 2520 by=0:rem current byte read
@@ -13,6 +16,7 @@
 2580 le=0:rem count of payload bytes
 2590 ca=-1:rem current store address
 2600 la=-1:rem last store address
+2610 wr=1:rem next write ready val.
 5000 rem *** main ***
 5005 print"setting out val. to high.."
 5010 gosub 7000:rem see val.of o
@@ -49,15 +53,13 @@
 7040 return
 7050 poke io,(peek(io)and253)
 7060 return
-7100 rem *** wait 1/60 secs.in p ***
-7110 t=ti+p
-7120 if ti<t then 7120
-7130 return
 7200 rem *** read a byte into by ***
 7210 by=0
 7220 for c=0 to 7
-7225 rem implicit delay is enough:
+7225 rem wait for write ready signal:
 7230 rem p=de:gosub 7100:rem wait delay
+7235 if (peek(io)and2)/2<>wr then 7235
+7238 wr=1-wr
 7240 bi=peek(io)and1
 7250 by=by+bi*(2^c)
 7260 gosub 7000:rem acknowledge
