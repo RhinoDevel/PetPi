@@ -37,6 +37,7 @@
     </BuildEvents>
     <BuildList>
         <FileName>main.asm</FileName>
+        <FileName>main.bas</FileName>
     </BuildList>
     <DetermineBuildOrder>0</DetermineBuildOrder>
     <PaddingByte>0</PaddingByte>
@@ -49,8 +50,19 @@
             <Regions />
             <Breakpoints />
             <Bookmarks />
+            <Topmost>True</Topmost>
+            <FileOpen>False</FileOpen>
+        </SourceFile>
+        <SourceFile>
+            <Name>main.bas</Name>
+            <PrgName />
+            <FileType>1</FileType>
+            <IncludeInBuild>False</IncludeInBuild>
+            <Regions />
+            <Breakpoints />
+            <Bookmarks />
             <Topmost>False</Topmost>
-            <FileOpen>True</FileOpen>
+            <FileOpen>False</FileOpen>
         </SourceFile>
     </SourceFiles>
 </Project>
