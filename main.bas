@@ -57,7 +57,7 @@
 7210 by=0
 7220 for c=0 to 7
 7225 rem wait for write ready signal:
-7235 if (peek(io)and2)/2<>wr then 7235
+7235 if (peek(io)and4)/4<>wr then 7235
 7238 wr=1-wr
 7240 bi=peek(io)and1
 7250 by=by+bi*(2^c)
