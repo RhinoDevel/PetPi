@@ -51,13 +51,13 @@ chr_spc  = $20
 tapbufin = $bb          ;$271 ;tape buffer #1 and #2 indices to next char (2 bytes)
 cursor   = $c4          ;$e0
 ;time     = 143         ;514 ;low byte of time
-counter  = $e849          ;read timer 2 counter high byte
+;counter  = $e849          ;read timer 2 counter high byte
 di       = 59459          ;data direction reg.
 io       = 59471          ;i/o port
 defbasic = $401          ;default start addr.of basic prg
 
 adptr    = 15          ;6 ;unused terminal & src. width
-de       = 32          ;1        ;bit read delay (see function for details)
+;de       = 32          ;1        ;bit read delay (see function for details)
 
 ; ------
 ; macros
@@ -99,6 +99,9 @@ de       = 32          ;1        ;bit read delay (see function for details)
 
          cld
 
+         lda #0
+         sta wr
+
          jsr clrscr
 
          pla           ;save return address (basic cmds.remove this fr.stack)
@@ -111,8 +114,7 @@ de       = 32          ;1        ;bit read delay (see function for details)
 
          jsr out2high  ;make sure that line 2 will be high, when set as output
 
-         lda di        ;setup i/o line 2 as output
-         ora #2
+         lda #2        ;setup i/o line 2 as output, 1 and 3 must be inputs
          sta di
 
          jsr togout    ;set line 2 to low
@@ -124,7 +126,7 @@ de       = 32          ;1        ;bit read delay (see function for details)
          sta adptr+1
          sta loadadr+1
 
-                       ;lda adptr+1    ;print start address
+         ;lda adptr+1    ;print start address
          jsr printby
          lda adptr
          jsr printby
@@ -143,12 +145,12 @@ de       = 32          ;1        ;bit read delay (see function for details)
          jsr printby
          jsr crlf
 
-         lda adptr     ;return,if dest.addr.=$ffff
-         cmp #$ff
-         bne keywait
-         lda adptr+1
-         cmp #$ff
-         beq break
+;         lda adptr     ;return,if dest.addr.=$ffff
+;         cmp #$ff
+;         bne keywait
+;         lda adptr+1
+;         cmp #$ff
+;         beq break
 
 keywait  jsr get       ;wait for user key press
          beq keywait
@@ -281,15 +283,15 @@ out2high lda #0
 ;         bne delay     ;time is reached
 ;         rts
 
-; *******************************************************
-; *** wait constant de multiplied by 256 microseconds ***
-; *******************************************************
-
-waitde   lda #de
-         sta counter
-delay    cmp counter
-         bcs delay     ;branch, if de is equal or greater than counter
-         rts
+;; *******************************************************
+;; *** wait constant de multiplied by 256 microseconds ***
+;; *******************************************************
+;
+;waitde   lda #de
+;         sta counter
+;delay    cmp counter
+;         bcs delay     ;branch, if de is equal or greater than counter
+;         rts
 
 ; ***********************************
 ;*** read a byte into accumulator ***
@@ -297,9 +299,16 @@ delay    cmp counter
 
 readbyte ldy #0        ;byte buffer during read
          ldx #1        ;to hold 2^exp
-readloop jsr waitde    ;todo: decrease wait delay
+readloop lda io        ;wait for write ready signal
+         and #4        ;write ready line
+         lsr a
+         lsr a
+         cmp wr
+         bne readloop
+         eor #1        ;toggle next write ready val.to expect
+         sta wr
          lda io
-         and #1
+         and #1        ;data line
          beq readnext  ;bit read is zero
          stx tapbufin+1;bit read is one, add to byte (buffer)
          tya           ;get current byte buffer content
@@ -358,6 +367,7 @@ prbloop  lsr a
 ; variables
 ; ---------
 
+wr       byte 0    ;next write ready signal
 le       byte 0, 0 ;count of payload bytes
 crsrbuf  byte 0, 0, 0
 loadadr  byte 0, 0 ;hold start address of loaded prg
