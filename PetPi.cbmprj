@@ -46,18 +46,18 @@
             <Name>main.asm</Name>
             <PrgName />
             <FileType>2</FileType>
-            <IncludeInBuild>False</IncludeInBuild>
+            <IncludeInBuild>True</IncludeInBuild>
             <Regions />
             <Breakpoints />
             <Bookmarks />
             <Topmost>False</Topmost>
-            <FileOpen>False</FileOpen>
+            <FileOpen>True</FileOpen>
         </SourceFile>
         <SourceFile>
             <Name>main.bas</Name>
             <PrgName />
             <FileType>1</FileType>
-            <IncludeInBuild>True</IncludeInBuild>
+            <IncludeInBuild>False</IncludeInBuild>
             <Regions />
             <Breakpoints />
             <Bookmarks />
