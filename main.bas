@@ -20,8 +20,8 @@
 5000 rem *** main ***
 5005 print"setting out val. to high.."
 5010 gosub 7000:rem see val.of o
-5020 print"enabling output.."
-5030 poke di,(peek(di)or2)
+5020 print"enabling output (others as inputs).."
+5030 poke di,2
 5040 print"setting out val. to low.."
 5050 gosub 7000
 5060 gosub 7200:rem read a byte
