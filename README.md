@@ -3,7 +3,7 @@ Raspberry Pi and Commodore PET / CBM communication via GPIO and user port.
 
 Current transfer speed (using ASM receiver on PET): Almost 30 bytes per second.
 
-Working features:
+Working features (v1.1.3):
 
 - Transfer files (e.g. ASM applications) from Pi to PET's non-BASIC memory (e.g. to tape buffers) by using BASIC receiver application (see main.bas file).
 
