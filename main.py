@@ -21,8 +21,9 @@ pin_1 = 17 # BCM
 pin_2 = 27 # BCM
 
 wrt_rdy = GPIO.HIGH # Also used as initial value [see setup_pins()].
+read_ack_edge = GPIO.FALLING
 
-#edge_wait_seconds = 0.001 # Use slightly higher delay on PET.
+#edge_wait_seconds = 0.008
 
 def setup_pins():
     GPIO.setup(
@@ -50,10 +51,11 @@ def cleanup():
 
 def send_byte(b):
     global wrt_rdy
+    global read_ack_edge
 
     i = 0
     val = GPIO.LOW
-    next_edge = GPIO.RISING
+    next_read_ack_edge = GPIO.RISING # read_ack_edge must always be falling, here!
     next_wrt_rdy = GPIO.LOW # wrt_rdy must always be high, here!
 
     # Should be an assert (debugging):
@@ -68,6 +70,12 @@ def send_byte(b):
         cleanup()
         raise Exception('send_byte : Error: WRITE READY state must be set to high!')
 
+    # Should be an assert (debugging):
+    #
+    if read_ack_edge is GPIO.RISING:
+        cleanup()
+        raise Exception('send_byte : Error: READ ACK edge must be set to falling!')
+
     for i in range(0,8):
         if (b>>i)&1 == 1:
             val = GPIO.HIGH
@@ -77,15 +85,27 @@ def send_byte(b):
 
         set_output(pin_2, next_wrt_rdy) # WRITE READY to PET.
 
-        #time.sleep(edge_wait_seconds) # To avoid detecting false edge.
+        #time.sleep(edge_wait_seconds)
 
-        GPIO.wait_for_edge(pin_1, next_edge) # Waiting for READ ACK from PET.
-        if next_edge is GPIO.FALLING:
-           next_edge = GPIO.RISING
-        else:
-           next_edge = GPIO.FALLING
+        GPIO.wait_for_edge(pin_1, next_read_ack_edge) # Waiting for READ ACK from PET.
+
+        # TODO: Debug code:
+        #
+        #
+        debu = GPIO.HIGH
+        if next_read_ack_edge is GPIO.RISING:
+            debu = GPIO.LOW
+        #
+        if get_input(pin_1) is debu:
+            cleanup()
+            raise Exception('*** IMMEDIATE ERROR ***') 
+        #time.sleep(0.100)
+        #if get_input(pin_1) is debu:
+        #    cleanup()
+        #    raise Exception('*** 100ms ERROR ***') 
 
         wrt_rdy, next_wrt_rdy = next_wrt_rdy, wrt_rdy # Swap
+        read_ack_edge, next_read_ack_edge = next_read_ack_edge, read_ack_edge # Swap
 
 def main_nocatch():
     i = -1
@@ -163,3 +183,23 @@ def main():
         cleanup()
 
 main()
+
+# Output test stuff:
+#
+#print('Key for setup..')
+#raw_input()
+#setup()
+#
+#print('Key for setting write ready to LOW..')
+#raw_input()
+#set_output(pin_2, GPIO.LOW)
+#
+#print('Key for setting data to HIGH..')
+#raw_input()
+#set_output(pin_0, GPIO.HIGH)
+#
+#print('Key for cleanup and exit..')
+#raw_input()
+#cleanup()
+
+
