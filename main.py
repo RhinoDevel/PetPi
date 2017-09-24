@@ -66,7 +66,7 @@ def send_byte(b):
     #
     if wrt_rdy is GPIO.LOW:
         cleanup()
-        raise Exception('send_byte : Error: WRITE READY state must be set to low!')
+        raise Exception('send_byte : Error: WRITE READY state must be set to high!')
 
     for i in range(0,8):
         if (b>>i)&1 == 1:
