@@ -13,6 +13,8 @@ Working features (v1.1.3):
 
 How to:
 
+![Photo of PetPi custom connection between Pi and PET](https://raw.githubusercontent.com/RhinoDevel/PetPi/master/howto.jpg)
+
 - Use (e.g.) CBM prg Studio to create PRG files from BASIC (main.bas) and ASM (main.asm) receiver applications.
 
 - Details about the custom cable to be build (very simple: currently four wires, four resistors and one transistor, only) will follow soon!
