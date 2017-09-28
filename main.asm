@@ -71,7 +71,7 @@ de       = 8        ;bit read delay (see function for details)
 ; *** main ***
 ; ************
 
-         cld
+         ;cld
 
          ;jsr clrscr
 
@@ -85,8 +85,8 @@ de       = 8        ;bit read delay (see function for details)
 ;         lda rtsadr
 ;         pha
 
-         lda #0        ;set initial write ready signal to expect
-         sta wr
+         lda #0        ;make sure that initial write ready signal
+         sta wrmo+1    ;to expect is set to zero.
 
          jsr out2high  ;make sure that line 2 will be high, when set as output
 
@@ -273,7 +273,7 @@ readcont lda io        ;wait for write ready signal
          and #4        ;write ready line
          lsr a
          lsr a
-         cmp wr
+wrmo     cmp #0        ;this value will be toggled between 0 and 1 in-place.
          bne readloop
          
          jsr waitde    ;workaround for what seems to be a hardware problem
@@ -281,11 +281,11 @@ readcont lda io        ;wait for write ready signal
          and #4
          lsr a
          lsr a
-         cmp wr
+         cmp wrmo+1
          bne readloop
 
          eor #1        ;toggle next write ready val.to expect
-         sta wr
+         sta wrmo+1
          lda io
          and #1        ;data line
          beq readnext  ;bit read is zero
@@ -335,7 +335,6 @@ prbloop  lsr a
 ; variables
 ; ---------
 
-wr       byte 0    ;next write ready signal
 le       byte 0, 0 ;count of payload bytes
 crsrbuf  byte 0, 0, 0
 loadadr  byte 0, 0 ;hold start address of loaded prg
