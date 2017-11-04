@@ -23,7 +23,8 @@ pin_2 = 27 # BCM
 wrt_rdy = GPIO.HIGH # Also used as initial value [see setup_pins()].
 read_ack_edge = GPIO.FALLING
 
-#edge_wait_seconds = 0.008
+immediate_err_count = 0
+immediate_err_seconds = 0.1
 
 def setup_pins():
     GPIO.setup(
@@ -52,6 +53,7 @@ def cleanup():
 def send_byte(b):
     global wrt_rdy
     global read_ack_edge
+    global immediate_err_count
 
     i = 0
     val = GPIO.LOW
@@ -85,24 +87,22 @@ def send_byte(b):
 
         set_output(pin_2, next_wrt_rdy) # WRITE READY to PET.
 
-        #time.sleep(edge_wait_seconds)
-
         GPIO.wait_for_edge(pin_1, next_read_ack_edge) # Waiting for READ ACK from PET.
 
-        # TODO: Debug code:
-        #
+        # TODO: Debug/workaround code:
         #
         debu = GPIO.HIGH
         if next_read_ack_edge is GPIO.RISING:
             debu = GPIO.LOW
         #
         if get_input(pin_1) is debu:
-            cleanup()
-            raise Exception('*** IMMEDIATE ERROR ***') 
-        #time.sleep(0.100)
-        #if get_input(pin_1) is debu:
-        #    cleanup()
-        #    raise Exception('*** 100ms ERROR ***') 
+            immediate_err_count = immediate_err_count+1
+            print('*** send_byte : Warning: Immediate error (waiting ' + str(immediate_err_seconds) + 'seconds).. ***')
+	    raw_input()
+            time.sleep(immediate_err_seconds)
+            if get_input(pin_1) is debu:
+                cleanup()
+                raise Exception('*** IMMEDIATE ERROR (waiting did not help) ***')
 
         wrt_rdy, next_wrt_rdy = next_wrt_rdy, wrt_rdy # Swap
         read_ack_edge, next_read_ack_edge = next_read_ack_edge, read_ack_edge # Swap
@@ -173,6 +173,7 @@ def main_nocatch():
 
     cleanup()
 
+    print('Immediate error count: '+str(immediate_err_count))
     print('Done.')
 
 def main():
