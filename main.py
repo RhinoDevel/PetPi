@@ -97,7 +97,7 @@ def send_byte(b):
         #
         if get_input(pin_1) is debu:
             immediate_err_count = immediate_err_count+1
-            print('*** send_byte : Warning: Immediate error (waiting ' + str(immediate_err_seconds) + 'seconds).. ***')
+            print('*** send_byte : Warning: Immediate error (waiting ' + str(immediate_err_seconds) + ' seconds).. ***')
             time.sleep(immediate_err_seconds)
             if get_input(pin_1) is debu:
                 cleanup()
