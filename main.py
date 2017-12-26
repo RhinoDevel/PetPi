@@ -23,6 +23,9 @@ pin_2_wrt_rdy_to_pet = 27 # BCM
 wrt_rdy = GPIO.HIGH # Also used as initial value [see setup_pins()].
 read_ack_edge = GPIO.FALLING
 
+timeout_wait_for_start_signal_ms = 60000
+timeout_wait_for_read_ack_from_pet_ms = 10000
+
 immediate_err_count = 0
 immediate_err_seconds = 0.1
 
@@ -90,7 +93,14 @@ def send_byte(b):
 
         set_output(pin_2_wrt_rdy_to_pet, next_wrt_rdy) # WRITE READY to PET.
 
-        GPIO.wait_for_edge(pin_1_read_ack_from_pet, next_read_ack_edge) # Waiting for READ ACK from PET.
+        # Waiting for READ ACK from PET:
+        #
+        if GPIO.wait_for_edge(
+                pin_1_read_ack_from_pet,
+                next_read_ack_edge,
+                timeout=timeout_wait_for_read_ack_from_pet_ms) is None:
+            cleanup()
+            raise Exception('send_byte : Error: READ ACK timeout happened!')
 
         # TODO: Debug/workaround code:
         #
@@ -99,12 +109,14 @@ def send_byte(b):
             debu = GPIO.LOW
         #
         if get_input(pin_1_read_ack_from_pet) is debu:
-            immediate_err_count = immediate_err_count+1
-            print('*** send_byte : Warning: Immediate error (waiting ' + str(immediate_err_seconds) + ' seconds).. ***')
-            time.sleep(immediate_err_seconds)
-            if get_input(pin_1_read_ack_from_pet) is debu:
-                cleanup()
-                raise Exception('*** IMMEDIATE ERROR (waiting did not help) ***')
+            cleanup()
+            raise Exception('*** IMMEDIATE ERROR (did not try to wait as workaround) ***')
+            #immediate_err_count = immediate_err_count+1
+            #print('*** send_byte : Warning: Immediate error (waiting ' + str(immediate_err_seconds) + ' seconds).. ***')
+            #time.sleep(immediate_err_seconds)
+            #if get_input(pin_1_read_ack_from_pet) is debu:
+            #    cleanup()
+            #    raise Exception('*** IMMEDIATE ERROR (waiting did not help) ***')
 
         wrt_rdy, next_wrt_rdy = next_wrt_rdy, wrt_rdy # Swap
         read_ack_edge, next_read_ack_edge = next_read_ack_edge, read_ack_edge # Swap
@@ -146,7 +158,13 @@ def main_nocatch():
         return
 
     print('Waiting for start signal..')
-    GPIO.wait_for_edge(pin_1_read_ack_from_pet, GPIO.FALLING)
+    if GPIO.wait_for_edge(
+            pin_1_read_ack_from_pet,
+            GPIO.FALLING,
+            timeout=timeout_wait_for_start_signal_ms) is None:
+        cleanup()
+	print('Start signal timeout happened.')
+        return
 
     t0 = time.time()
 
