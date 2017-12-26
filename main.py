@@ -20,11 +20,10 @@ pin_0_data_to_pet = 4 # BCM
 pin_1_read_ack_from_pet = 17 # BCM
 pin_2_wrt_rdy_to_pet = 27 # BCM
 
-wrt_rdy = GPIO.HIGH # Also used as initial value [see setup_pins()].
-read_ack_edge = GPIO.FALLING
+next_read_ack_edge = GPIO.RISING # See start signal.
 
 timeout_wait_for_start_signal_ms = 60000
-timeout_wait_for_read_ack_from_pet_ms = 10000
+timeout_wait_for_read_ack_from_pet_ms = 20000
 
 immediate_err_count = 0
 immediate_err_seconds = 0.1
@@ -32,7 +31,7 @@ immediate_err_seconds = 0.1
 def setup_pins():
     GPIO.setup(pin_0_data_to_pet, GPIO.OUT, initial=GPIO.LOW) # DATA to PET (init. val. shouldn't matter).
     GPIO.setup(pin_1_read_ack_from_pet, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # READ ACK from PET.
-    GPIO.setup(pin_2_wrt_rdy_to_pet, GPIO.OUT, initial=wrt_rdy) # WRITE READY to PET.
+    GPIO.setup(pin_2_wrt_rdy_to_pet, GPIO.OUT, initial=GPIO.HIGH) # WRITE READY to PET.
 
     print('Pin 0 / ' + str(pin_0_data_to_pet) + ' (DATA to PET): ' + str(GPIO.gpio_function(pin_0_data_to_pet)))
     print('Pin 1 / ' + str(pin_1_read_ack_from_pet) + ' (READ ACK from PET): ' + str(GPIO.gpio_function(pin_1_read_ack_from_pet)))
@@ -56,70 +55,82 @@ def cleanup():
     print('Cleaning up..')
     GPIO.cleanup()
 
-def send_byte(b):
-    global wrt_rdy
-    global read_ack_edge
+def send_bit(b):
+    global next_read_ack_edge
     global immediate_err_count
 
-    i = 0
     val = GPIO.LOW
-    next_read_ack_edge = GPIO.RISING # read_ack_edge must always be falling, here!
-    next_wrt_rdy = GPIO.LOW # wrt_rdy must always be high, here!
+
+    if b not in (0, 1):
+        cleanup()
+        raise Exception('send_bit : Error: Invalid value given!')
+
+    if b == 1:
+        val = GPIO.HIGH
+
+    set_output(pin_0_data_to_pet, val) # DATA to PET.
+
+    # WRITE READY to PET:
+    #
+    # - This is OK, see: https://sourceforge.net/p/raspberry-gpio-python/wiki/Outputs/
+    #
+    set_output(pin_2_wrt_rdy_to_pet, not get_input(pin_2_wrt_rdy_to_pet))
+
+    print('send_bit : DATA = ' + str(get_input(pin_0_data_to_pet)) + ', WRT_RDY = ' + str(get_input(pin_2_wrt_rdy_to_pet)) + ' READ_ACK = ' + str(get_input(pin_1_read_ack_from_pet)) + ', waiting for READ_ACK = ' + str(next_read_ack_edge)) 
+
+    # Waiting for READ ACK from PET:
+    #
+    if GPIO.wait_for_edge(
+            pin_1_read_ack_from_pet,
+            next_read_ack_edge,
+            timeout=timeout_wait_for_read_ack_from_pet_ms) is None:
+        cleanup()
+        raise Exception('send_bit : Error: READ ACK timeout happened!')
+
+    # TODO: Debug/workaround code:
+    #
+    debu = GPIO.HIGH
+    if next_read_ack_edge is GPIO.RISING:
+        debu = GPIO.LOW
+    #
+    if get_input(pin_1_read_ack_from_pet) is debu:
+        cleanup()
+        raise Exception('*** IMMEDIATE ERROR (did not try to wait as workaround) ***')
+        #immediate_err_count = immediate_err_count+1
+        #print('*** send_bit : Warning: Immediate error (waiting ' + str(immediate_err_seconds) + ' seconds).. ***')
+        #time.sleep(immediate_err_seconds)
+        #if get_input(pin_1_read_ack_from_pet) is debu:
+        #    cleanup()
+        #    raise Exception('*** IMMEDIATE ERROR (waiting did not help) ***')
+
+    if next_read_ack_edge is GPIO.FALLING:
+        next_read_ack_edge = GPIO.RISING
+    else:
+        next_read_ack_edge = GPIO.FALLING
+
+def send_byte(b):
+    i = 0
 
     # Should be an assert (debugging):
     #
-    if get_input(pin_1_read_ack_from_pet) is GPIO.HIGH:
+    if get_input(pin_1_read_ack_from_pet) is not GPIO.LOW:
         cleanup()
-        raise Exception('send_byte : Error: Input pin must be set to low!')
+        raise Exception('send_byte : Error: READ ACK input must be set to low!')
 
     # Should be an assert (debugging):
     #
-    if wrt_rdy is GPIO.LOW:
+    if get_input(pin_2_wrt_rdy_to_pet) is not GPIO.HIGH:
         cleanup()
-        raise Exception('send_byte : Error: WRITE READY state must be set to high!')
+        raise Exception('send_byte : Error: WRITE READY output must be set to high!')
 
     # Should be an assert (debugging):
     #
-    if read_ack_edge is GPIO.RISING:
+    if next_read_ack_edge is not GPIO.RISING:
         cleanup()
-        raise Exception('send_byte : Error: READ ACK edge must be set to falling!')
+        raise Exception('send_byte : Error: Expected next READ ACK edge must be set to rising!')
 
     for i in range(0,8):
-        if (b>>i)&1 == 1:
-            val = GPIO.HIGH
-        else:
-            val = GPIO.LOW
-        set_output(pin_0_data_to_pet, val) # DATA to PET.
-
-        set_output(pin_2_wrt_rdy_to_pet, next_wrt_rdy) # WRITE READY to PET.
-
-        # Waiting for READ ACK from PET:
-        #
-        if GPIO.wait_for_edge(
-                pin_1_read_ack_from_pet,
-                next_read_ack_edge,
-                timeout=timeout_wait_for_read_ack_from_pet_ms) is None:
-            cleanup()
-            raise Exception('send_byte : Error: READ ACK timeout happened!')
-
-        # TODO: Debug/workaround code:
-        #
-        debu = GPIO.HIGH
-        if next_read_ack_edge is GPIO.RISING:
-            debu = GPIO.LOW
-        #
-        if get_input(pin_1_read_ack_from_pet) is debu:
-            cleanup()
-            raise Exception('*** IMMEDIATE ERROR (did not try to wait as workaround) ***')
-            #immediate_err_count = immediate_err_count+1
-            #print('*** send_byte : Warning: Immediate error (waiting ' + str(immediate_err_seconds) + ' seconds).. ***')
-            #time.sleep(immediate_err_seconds)
-            #if get_input(pin_1_read_ack_from_pet) is debu:
-            #    cleanup()
-            #    raise Exception('*** IMMEDIATE ERROR (waiting did not help) ***')
-
-        wrt_rdy, next_wrt_rdy = next_wrt_rdy, wrt_rdy # Swap
-        read_ack_edge, next_read_ack_edge = next_read_ack_edge, read_ack_edge # Swap
+        send_bit(b>>i&1)
 
 def main_nocatch():
     i = -1
@@ -182,7 +193,6 @@ def main_nocatch():
     print('Sending payload length high byte: '+str(h)+'..')    
     send_byte(h)
     for i in range(len(payload)):
-        print('Sending payload byte at index '+str(i)+' of '+str(len(payload))+': '+str(payload[i])+'..')
         send_byte(payload[i])
     print('Transfer done.')
 
@@ -222,5 +232,6 @@ main()
 #print('Key for cleanup and exit..')
 #raw_input()
 #cleanup()
+
 
 
