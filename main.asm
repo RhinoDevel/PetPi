@@ -61,7 +61,7 @@ io       = 59471          ;i/o port
 defbasic = $401          ;default start addr.of basic prg
 
 adptr    = 15          ;6 ;unused terminal & src. width
-de       = 8        ;bit read delay (see function for details)
+;de       = 8        ;bit read delay (see function for details)
 
 ; ---------
 ; functions
@@ -242,15 +242,15 @@ out2high lda #0
 ;         bne delay     ;time is reached
 ;         rts
 
-; *******************************************************
-; *** wait constant de multiplied by 256 microseconds ***
-; *******************************************************
+;; *******************************************************
+;; *** wait constant de multiplied by 256 microseconds ***
+;; *******************************************************
 
-waitde   lda #de
-         sta counter
-delay    cmp counter
-         bcs delay     ;branch, if de is equal or greater than counter
-         rts
+;waitde   lda #de
+;         sta counter
+;delay    cmp counter
+;         bcs delay     ;branch, if de is equal or greater than counter
+;         rts
 
 ; ************************************
 ; *** read a byte into accumulator ***
@@ -274,14 +274,6 @@ readcont lda io        ;wait for write ready signal
          lsr a
          lsr a
 wrmo     cmp #0        ;this value will be toggled between 0 and 1 in-place.
-         bne readloop
-         
-         jsr waitde    ;workaround for what seems to be a hardware problem
-         lda io
-         and #4
-         lsr a
-         lsr a
-         cmp wrmo+1
          bne readloop
 
          eor #1        ;toggle next write ready val.to expect
