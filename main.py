@@ -9,16 +9,16 @@
 # - PET's user port pins interpreted as outputs have LOW level, if PET is powered off.
 # - They are "set" to HIGH level (interpreted as outputs) during PET booting up.
 # - Initially, the I/O user port pins 0-7 are configured as inputs: PEEK(59459) => 0
-# - Such a pin can be configured as output via poking to 59459. E.g. for pin 1: POKE 59459,(PEEK(59459) OR 2) => LOW level (maybe not always!).
+# - Such a pin can be configured as output via poking to 59459. E.g. for pin 1: POKE 59459,(PEEK(59459) OR 2) => LOW level (should initially be low..).
 # - Output level can be set by poking to 59471. E.g. for pin 1: POKE 59471,(PEEK(59471) OR 2) => HIGH level.
 
 import RPi.GPIO as GPIO
 import time
 
 pin_mode = GPIO.BCM # GPIO.BOARD
-pin_0 = 4 # BCM
-pin_1 = 17 # BCM
-pin_2 = 27 # BCM
+pin_0_data_to_pet = 4 # BCM
+pin_1_read_ack_from_pet = 17 # BCM
+pin_2_wrt_rdy_to_pet = 27 # BCM
 
 wrt_rdy = GPIO.HIGH # Also used as initial value [see setup_pins()].
 read_ack_edge = GPIO.FALLING
@@ -27,13 +27,16 @@ immediate_err_count = 0
 immediate_err_seconds = 0.1
 
 def setup_pins():
-    GPIO.setup(
-        pin_0, GPIO.OUT, initial=GPIO.LOW) # DATA to PET (init. val. shouldn't matter).
-    GPIO.setup(pin_1, GPIO.IN, pull_up_down=GPIO.PUD_UP) # READ ACK from PET.
-    GPIO.setup(pin_2, GPIO.OUT, initial=wrt_rdy) # WRITE READY to PET.
+    GPIO.setup(pin_0_data_to_pet, GPIO.OUT, initial=GPIO.LOW) # DATA to PET (init. val. shouldn't matter).
+    GPIO.setup(pin_1_read_ack_from_pet, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # READ ACK from PET.
+    GPIO.setup(pin_2_wrt_rdy_to_pet, GPIO.OUT, initial=wrt_rdy) # WRITE READY to PET.
+
+    print('Pin 0 / ' + str(pin_0_data_to_pet) + ' (DATA to PET): ' + str(GPIO.gpio_function(pin_0_data_to_pet)))
+    print('Pin 1 / ' + str(pin_1_read_ack_from_pet) + ' (READ ACK from PET): ' + str(GPIO.gpio_function(pin_1_read_ack_from_pet)))
+    print('Pin 2 / ' + str(pin_2_wrt_rdy_to_pet) + ' (WRITE READY to PET): ' + str(GPIO.gpio_function(pin_2_wrt_rdy_to_pet)))
 
 def setup():
-    GPIO.setwarnings(False)
+    #GPIO.setwarnings(False)
     GPIO.setmode(pin_mode)
     setup_pins()
 
@@ -62,7 +65,7 @@ def send_byte(b):
 
     # Should be an assert (debugging):
     #
-    if get_input(pin_1) is GPIO.HIGH:
+    if get_input(pin_1_read_ack_from_pet) is GPIO.HIGH:
         cleanup()
         raise Exception('send_byte : Error: Input pin must be set to low!')
 
@@ -83,11 +86,11 @@ def send_byte(b):
             val = GPIO.HIGH
         else:
             val = GPIO.LOW
-        set_output(pin_0, val) # DATA to PET.
+        set_output(pin_0_data_to_pet, val) # DATA to PET.
 
-        set_output(pin_2, next_wrt_rdy) # WRITE READY to PET.
+        set_output(pin_2_wrt_rdy_to_pet, next_wrt_rdy) # WRITE READY to PET.
 
-        GPIO.wait_for_edge(pin_1, next_read_ack_edge) # Waiting for READ ACK from PET.
+        GPIO.wait_for_edge(pin_1_read_ack_from_pet, next_read_ack_edge) # Waiting for READ ACK from PET.
 
         # TODO: Debug/workaround code:
         #
@@ -95,11 +98,11 @@ def send_byte(b):
         if next_read_ack_edge is GPIO.RISING:
             debu = GPIO.LOW
         #
-        if get_input(pin_1) is debu:
+        if get_input(pin_1_read_ack_from_pet) is debu:
             immediate_err_count = immediate_err_count+1
             print('*** send_byte : Warning: Immediate error (waiting ' + str(immediate_err_seconds) + ' seconds).. ***')
             time.sleep(immediate_err_seconds)
-            if get_input(pin_1) is debu:
+            if get_input(pin_1_read_ack_from_pet) is debu:
                 cleanup()
                 raise Exception('*** IMMEDIATE ERROR (waiting did not help) ***')
 
@@ -137,13 +140,13 @@ def main_nocatch():
 
     setup()
 
-    if get_input(pin_1) is not GPIO.HIGH:
+    if get_input(pin_1_read_ack_from_pet) is not GPIO.HIGH:
         print('Error: Input must be set to HIGH! Exiting..')
         cleanup()
         return
 
     print('Waiting for start signal..')
-    GPIO.wait_for_edge(pin_1, GPIO.FALLING)
+    GPIO.wait_for_edge(pin_1_read_ack_from_pet, GPIO.FALLING)
 
     t0 = time.time()
 
@@ -192,11 +195,11 @@ main()
 #
 #print('Key for setting write ready to LOW..')
 #raw_input()
-#set_output(pin_2, GPIO.LOW)
+#set_output(pin_2_wrt_rdy_to_pet, GPIO.LOW)
 #
 #print('Key for setting data to HIGH..')
 #raw_input()
-#set_output(pin_0, GPIO.HIGH)
+#set_output(pin_0_data_to_pet, GPIO.HIGH)
 #
 #print('Key for cleanup and exit..')
 #raw_input()
