@@ -1,7 +1,7 @@
 # PetPi
 Raspberry Pi and Commodore PET / CBM communication via GPIO and user port.
 
-Current transfer speed (using ASM receiver on PET): Almost 30 bytes per second.
+Current transfer speed (using ASM receiver on PET): Almost 60 bytes per second.
 
 Working features (v1.1.3):
 
