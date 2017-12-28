@@ -31,7 +31,35 @@ int main()
         printf("DOWN OK\n");
     }
 
-    //gpio_set_output
+    gpio_set_output(24, true);
+    if(gpio_read(24))
+    {
+        printf("OUT HIGH OK\n");
+    }
+    else
+    {
+        printf("OUT HIGH FAILED\n");
+    }
+
+    gpio_write(24, false);
+    if(gpio_read(24))
+    {
+        printf("OUT LOW OK\n");
+    }
+    else
+    {
+        printf("OUT LOW FAILED\n");
+    }
+
+    gpio_write(24, true);
+    if(gpio_read(24))
+    {
+        printf("OUT HIGH 2 OK\n");
+    }
+    else
+    {
+        printf("OUT HIGH 2 FAILED\n");
+    }
 
     printf("Ok.\n");
     return 0;
