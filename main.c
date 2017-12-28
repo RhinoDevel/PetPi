@@ -44,11 +44,11 @@ int main()
     gpio_write(24, false);
     if(gpio_read(24))
     {
-        printf("OUT LOW OK\n");
+        printf("OUT LOW FAILED\n");
     }
     else
     {
-        printf("OUT LOW FAILED\n");
+        printf("OUT LOW OK\n");
     }
 
     gpio_write(24, true);
