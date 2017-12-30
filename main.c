@@ -19,6 +19,7 @@
 #include "gpio/gpio.h"
 #include "FileSys.h"
 #include "Sys.h"
+#include "ProgressBar.h"
 
 static const int pin_0_data_to_pet = 4;
 static const int pin_1_read_ack_from_pet = 17;
@@ -33,6 +34,9 @@ static void sleep_nanoseconds(long const nanoseconds)
 
     clock_gettime(CLOCK_MONOTONIC, &d);
 
+    //long const before = d.tv_nsec,
+    //    before_s = d.tv_sec;
+
     d.tv_nsec += nanoseconds;
 
     if(d.tv_nsec >= 1000000000L)
@@ -41,6 +45,15 @@ static void sleep_nanoseconds(long const nanoseconds)
         ++d.tv_sec;
     }
     clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &d, NULL);
+
+    //clock_gettime(CLOCK_MONOTONIC, &d);
+    //long const after = d.tv_nsec,
+    //    after_s = d.tv_sec;
+
+    //if(before_s==after_s)
+    //{
+    //    printf("Waited %d nanoseconds.\n", (int)(after-before));
+    //}
 }
 
 static void setup_pins()
@@ -85,7 +98,7 @@ static void send_bit(unsigned char const bit)
 
     while(get_input(pin_1_read_ack_from_pet)!=expected_read_ack)
     {
-        sleep_nanoseconds(pet_max_nanoseconds);
+        sleep_nanoseconds(pet_max_nanoseconds); // TODO: Actually takes ~70us!
     }
 }
 
@@ -162,9 +175,10 @@ int main(int const argc, char * const argv[])
     uint64_t const t0 = Sys_get_posix_clock_time_ms();
 
     printf("Sending payload (%d bytes)..\n", (int)payload_len);
-    for(int i = 2;i<payload_len;++i)
+    for(int i = 0;i<payload_len;++i)
     {
-         send_byte(bytes[i]);
+         send_byte(bytes[i+2]);
+         ProgressBar_print(0, i+1, payload_len, 50, true);
     }
 
     printf("Transfer done..\n");
@@ -175,7 +189,7 @@ int main(int const argc, char * const argv[])
     printf("Elapsed seconds for payload transfer: %f\n", seconds);
     printf("Bytes per second for payload transfer: %f\n", payload_len/seconds);
 
-    printf("Done.");
+    printf("Done.\n");
 
     return EXIT_SUCCESS;
 }
