@@ -180,6 +180,7 @@ int main(int const argc, char * const argv[])
          send_byte(bytes[i+2]);
          ProgressBar_print(0, i+1, payload_len, 50, true);
     }
+    printf("\n");
 
     printf("Transfer done..\n");
 
