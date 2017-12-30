@@ -109,17 +109,21 @@ int main(int const argc, char * const argv[])
     if(argc!=2)
     {
         printf(
-            "Error: Please call application with PRG source file path as its single argument!");
+            "Error: Please call application with PRG source file path as its single argument!\n");
         return EXIT_FAILURE;
     }
+
+    printf("Reading file content..\n");
 
     unsigned char * const bytes = FileSys_loadFile(argv[1], &byte_count);
 
     if(bytes==NULL)
     {
-        printf("Error: Failed to read file content!");
+        printf("Error: Failed to read file content!\n");
         return EXIT_FAILURE;
     }
+
+    printf("Starting setup..\n");
 
     setup();
 
@@ -128,45 +132,48 @@ int main(int const argc, char * const argv[])
 
     if(!get_input(pin_1_read_ack_from_pet))
     {
-        printf("Error: Input must be set to HIGH!");
+        printf("Error: Input must be set to HIGH!\n");
         free(bytes);
+        return EXIT_FAILURE;
     }
+
+    printf("Waiting for READ ACK from PET to fall..\n");
 
     while(get_input(pin_1_read_ack_from_pet))
     {
         sleep_nanoseconds(pet_max_fall_nanoseconds);
     }
 
-    printf("Starting transfer of 2+2+%d bytes..", (int)payload_len);
+    printf("Starting transfer of 2+2+%d bytes..\n", (int)payload_len);
     h = start_addr/256;
     l = start_addr-256*h;
-    printf("Sending start address low byte: %X..", l);
+    printf("Sending start address low byte: %X..\n", l);
     send_byte(l);
-    printf("Sending start address high byte: %X..", h);
+    printf("Sending start address high byte: %X..\n", h);
     send_byte(h);
 
     h = payload_len/256;
     l = payload_len-256*h;
-    printf("Sending payload length low byte: %X..", l);
+    printf("Sending payload length low byte: %X..\n", l);
     send_byte(l);
-    printf("Sending payload length high byte: %X..", h);
+    printf("Sending payload length high byte: %X..\n", h);
     send_byte(h);
 
     uint64_t const t0 = Sys_get_posix_clock_time_ms();
 
-    printf("Sending payload (%d bytes)..", (int)payload_len);
+    printf("Sending payload (%d bytes)..\n", (int)payload_len);
     for(int i = 2;i<payload_len;++i)
     {
          send_byte(bytes[i]);
     }
 
-    printf("Transfer done..");
+    printf("Transfer done..\n");
 
     uint64_t const t_diff = Sys_get_posix_clock_time_ms()-t0;
     double const seconds = (double)t_diff/1000.0;
 
-    printf("Elapsed seconds for payload transfer: %f", seconds);
-    printf("Bytes per second for payload transfer: %f", payload_len/seconds);
+    printf("Elapsed seconds for payload transfer: %f\n", seconds);
+    printf("Bytes per second for payload transfer: %f\n", payload_len/seconds);
 
     printf("Done.");
 
