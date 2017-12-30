@@ -71,10 +71,10 @@ def send_bit(b):
     # TODO: Find a way to increase time precision to also increase speed:
     #
     while get_input(pin_1_read_ack_from_pet) is not expected_read_ack:
-        stop_time = time.time()+pet_max_seconds        
+        stop_time = time.time()+pet_max_seconds
         while time.time()<stop_time:
             pass
-        
+
 
 def send_byte(b):
     i = 0
@@ -149,9 +149,9 @@ def main_nocatch():
     send_byte(h)
     h = payload_len//256
     l = payload_len-256*h
-    print('Sending payload length low byte: '+str(l)+'..')    
+    print('Sending payload length low byte: '+str(l)+'..')
     send_byte(l)
-    print('Sending payload length high byte: '+str(h)+'..')    
+    print('Sending payload length high byte: '+str(h)+'..')
     send_byte(h)
 
     t0 = time.time()
@@ -161,10 +161,10 @@ def main_nocatch():
         send_byte(payload[i])
     print('Transfer done.')
 
-    t_end = time.time()-t0
+    t_diff = time.time()-t0
 
-    print('Elapsed seconds for payload transfer: '+str(t_end))
-    print('Bytes per second for payload transfer: '+str((2+2+payload_len)/t_end))
+    print('Elapsed seconds for payload transfer: '+str(t_diff))
+    print('Bytes per second for payload transfer: '+str(payload_len/t_diff))
 
     cleanup()
 
