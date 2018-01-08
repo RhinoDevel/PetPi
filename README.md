@@ -1,13 +1,13 @@
 # PetPi
 Raspberry Pi and Commodore PET / CBM communication via GPIO and user port.
 
-Current transfer speed (using ASM receiver on PET): Almost 30 bytes per second.
+Current transfer speed (using ASM receiver on PET): Almost 60 bytes per second (limited by Linux!).
 
-Working features (v1.1.3):
+Working features (>v1.1.3):
 
 - Transfer files (e.g. ASM applications) from Pi to PET's non-BASIC memory (e.g. to tape buffers) by using BASIC receiver application (see main.bas file).
 
-- Transfer BASIC PRG files from Pi to PET's BASIC memory by using ASM receiver application (see main.asm file).
+- Transfer BASIC PRG files from Pi to PET's BASIC memory by using C or Python sender and ASM receiver application (see main.asm file).
 
 - Autostart retrieved PRG files on PET.
 
@@ -19,7 +19,9 @@ How to:
 
 - Details about the custom cable to be build (very simple: currently four wires, four resistors and one transistor, only) will follow soon!
 
-- Use Python sender application on Pi (see main.py file).
+- Use C sender application on Pi (see main.c file, etc. - use Makefile to build).
+
+- As an alternative to C use Python sender application on Pi (see main.py file).
 
 - Details about the process will also follow soon!
 
