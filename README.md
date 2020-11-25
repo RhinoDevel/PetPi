@@ -1,3 +1,5 @@
+***The experience gained by working on this project led to my cassette port - using project called [CBM Tape Pi](https://github.com/RhinoDevel/cbmtapepi/blob/master/README.md), please check it out!***
+
 # PetPi
 Raspberry Pi and Commodore PET / CBM communication via GPIO and user port.
 
@@ -17,15 +19,11 @@ How to:
 
 - Use (e.g.) CBM prg Studio to create PRG files from BASIC (main.bas) and ASM (main.asm) receiver applications.
 
-- Details about the custom cable to be build (very simple: currently four wires, four resistors and one transistor, only) will follow soon!
-
 - Use C sender application on Pi (see main.c file, etc. - use Makefile to build).
 
 - As an alternative to C use Python sender application on Pi (see main.py file).
 
-- Details about the process will also follow soon!
-
-Features to be implemented:
+Features to be implemented (will probably never happen, because there is [CBM Tape Pi](https://github.com/RhinoDevel/cbmtapepi/blob/master/README.md), now):
 
 - Sending data (PRGs) from PET to Pi.
 
